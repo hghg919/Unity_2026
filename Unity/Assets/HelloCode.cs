@@ -60,22 +60,28 @@ public class HelloCode : MonoBehaviour
         //    i++;
         //}
 
-        bool isDead = false;
-        int hp = 100;
+        //bool isDead = false;
+        //int hp = 100;
 
-        while (!isDead)
-        {
-            Debug.Log("현재 체력 : " + hp);
+        //while (!isDead)
+        //{
+        //    Debug.Log("현재 체력 : " + hp);
 
-            hp = hp - 33;
+        //    hp = hp - 33;
 
-            if(hp <= 0 )
-            {
-                isDead = true;
-                Debug.Log("플레이어는 죽었습니다.");
-            }
-        }
+        //    if(hp <= 0 )
+        //    {
+        //        isDead = true;
+        //        Debug.Log("플레이어는 죽었습니다.");
+        //    }
+        //}
 
+        //int[] students = { 100,90,80,70,60 };
+
+        //for (int i = 0; i < students.Length; i++)
+        //{
+        //    Debug.Log($"{i + 1}번 학생의 점수:{students[i]}");
+        //}
     }
 
     // Update is called once per frame
