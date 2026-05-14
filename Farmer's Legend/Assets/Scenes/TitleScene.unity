@@ -1004,7 +1004,9 @@ PrefabInstance:
       value: Fance
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6869701783232846985, guid: 8037989bea573b54da83e6ed41f50ab4, type: 3}
+    - {fileID: 7523922146467721300, guid: 8037989bea573b54da83e6ed41f50ab4, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 924574292803750502, guid: 8037989bea573b54da83e6ed41f50ab4, type: 3}
       insertIndex: -1

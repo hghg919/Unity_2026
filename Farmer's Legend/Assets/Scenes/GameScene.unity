@@ -484,6 +484,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Environment
       objectReference: {fileID: 0}
+    - target: {fileID: 2284986326619691232, guid: 8037989bea573b54da83e6ed41f50ab4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 42b224efc5a8c4863a87e224a72bb1ea, type: 2}
+    - target: {fileID: 8127977191089370431, guid: 8037989bea573b54da83e6ed41f50ab4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 42b224efc5a8c4863a87e224a72bb1ea, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
