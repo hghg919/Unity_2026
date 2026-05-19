@@ -34,6 +34,9 @@ public class Enemy : MonoBehaviour
         {
             playerTransform = player.transform;
         }
+        if (InGameStageManager.Instance != null)
+            InGameStageManager.Instance.RegisterEnemy(this.gameObject);
+
     }
 
     void Update()
@@ -99,9 +102,11 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
+        if (InGameStageManager.Instance != null)
+            InGameStageManager.Instance.EnemyDied(this.gameObject);
+
         Destroy(gameObject);
     }
-
     // --- Enemy 스크립트 맨 아래(Die 함수 밑)에 추가할 내용 ---
 
     // 물리적으로 무언가와 부딪혔을 때 실행되는 유니티 내장 함수
