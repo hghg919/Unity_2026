@@ -101,4 +101,24 @@ public class Enemy : MonoBehaviour
     {
         Destroy(gameObject);
     }
+
+    // --- Enemy 스크립트 맨 아래(Die 함수 밑)에 추가할 내용 ---
+
+    // 물리적으로 무언가와 부딪혔을 때 실행되는 유니티 내장 함수
+    void OnCollisionEnter(Collision collision)
+    {
+        // 내가 근접 몹이고, 부딪힌 대상의 태그가 "Player" 라면
+        if (enemyType == EnemyType.Melee && collision.gameObject.CompareTag("Player"))
+        {
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.TakeDamage(1); // 플레이어에게 1의 대미지를 줌
+
+                // [기획 선택] 한 대 때린 몹은 자폭하게 만들거나, 아니면 계속 붙어서 때리게 둘 수 있습니다.
+                // 궁수의 전설처럼 자폭(소멸)시키려면 아래 주석을 해제하세요.
+                // Die(); 
+            }
+        }
+    }
 }
