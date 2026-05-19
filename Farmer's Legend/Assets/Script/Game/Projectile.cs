@@ -24,9 +24,18 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // Projectile 스크립트의 OnTriggerEnter 내부 수정
         if (other.CompareTag("Enemy"))
         {
-            Destroy(gameObject);
+            // 부딪힌 대상에게서 Enemy 스크립트를 가져옴
+            Enemy enemy = other.GetComponent<Enemy>();
+
+            if (enemy != null)
+            {
+                enemy.TakeDamage(1); // 1의 데미지를 줌
+            }
+
+            Destroy(gameObject); // 적과 부딪혔으므로 병은 파괴됨
         }
         else if (other.CompareTag("Wall"))
         {
