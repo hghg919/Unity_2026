@@ -27,7 +27,9 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // 1. 키보드 입력 받기 (마우스 꾹 누르기는 차후 확장)
+        if (isDead) return;
+
+        // 1. 키보드 입력 받기
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveZ = Input.GetAxisRaw("Vertical");
 
@@ -46,8 +48,10 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (isDead) return;
+
         // 물리 이동 및 회전
-        rb.linearVelocity = new Vector3(moveVelocity.x, rb.linearVelocity.y, moveVelocity.z); // 유니티 6에서는 velocity 대신 linearVelocity 사용 가능
+        rb.linearVelocity = new Vector3(moveVelocity.x, rb.linearVelocity.y, moveVelocity.z);
 
         if (isMoving)
         {
@@ -59,7 +63,6 @@ public class PlayerController : MonoBehaviour
 
     void AttackClosestEnemy()
     {
-        // [과제 부연] 주변에 있는 'Enemy' 태그를 가진 적 중 가장 가까운 적을 찾음
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
         GameObject closestEnemy = null;
         float shortestDistance = Mathf.Infinity;
@@ -77,7 +80,6 @@ public class PlayerController : MonoBehaviour
         // 적이 있다면 조준하고 발사
         if (closestEnemy != null)
         {
-            // 적을 바라보게 회전
             Vector3 targetDir = (closestEnemy.transform.position - transform.position).normalized;
             targetDir.y = 0; // 높이 고정
             transform.rotation = Quaternion.LookRotation(targetDir);
@@ -106,9 +108,35 @@ public class PlayerController : MonoBehaviour
     void PlayerDie()
     {
         isDead = true;
-        moveVelocity = Vector3.zero; // 이동 멈춤
+        rb.linearVelocity = Vector3.zero; // 물리 이동 즉시 멈춤
+        moveVelocity = Vector3.zero;
         Debug.Log("💀 게임 오버! 플레이어가 사망했습니다.");
+    }
 
-        // TODO: 나중에 여기에 "게임 오버 팝업창" 띄우는 코드가 들어갈 예정입니다.
+    // ⭐ [수정 완료] 보상방 카드 클릭 시 실제 스탯을 영구 강화해 주는 함수
+    public void ApplyReward(string rewardType)
+    {
+        switch (rewardType)
+        {
+            case "FireRateUp":
+                // 🏹 공격 주기(간격)를 줄여서 공격 속도를 빠르게 만듭니다. (최소 0.1초 제한)
+                attackRate = Mathf.Max(0.1f, attackRate - 0.05f);
+                Debug.Log($"🏹 곡괭이 선택: 공속 증가! 현재 공격 속도 주기: {attackRate}초");
+                break;
+
+            case "MoveSpeedUp":
+                // 👟 이동 속도 변수 자체를 누적 증가시킵니다.
+                moveSpeed += 1.0f;
+                Debug.Log($"👟 삽 선택: 이속 증가! 현재 이동 속도: {moveSpeed}");
+                break;
+
+            case "Heal":
+                // 📚 최대 체력(maxHealth)을 넘지 않는 선에서 체력을 1 회복시킵니다.
+                currentHealth = Mathf.Min(maxHealth, currentHealth + 1);
+                Debug.Log($"📚 책 선택: 체력 1 회복! 현재 체력: {currentHealth}/{maxHealth}");
+
+                // [나중에 체력 UI 연동 시 여기에 UI 갱신 코드를 넣으면 됩니다]
+                break;
+        }
     }
 }
