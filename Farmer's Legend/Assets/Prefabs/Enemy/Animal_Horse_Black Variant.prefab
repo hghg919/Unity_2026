@@ -61,15 +61,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 19.74184
+      value: 0.27
       objectReference: {fileID: 0}
     - target: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.0000002708848
       objectReference: {fileID: 0}
     - target: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.31288958
+      value: 3.851854
       objectReference: {fileID: 0}
     - target: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       propertyPath: m_LocalRotation.w
@@ -143,8 +143,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 13, y: 30, z: 30}
-  m_Center: {x: 0, y: 15, z: 0}
+  m_Size: {x: 11.500338, y: 34.629215, z: 40.1968}
+  m_Center: {x: 0.065886974, y: 17.314608, z: 4.052534}
 --- !u!54 &250709496994746436
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   maxHealth: 1
-  enemyType: 1
+  enemyType: 0
   attackRange: 20
   enemyProjectile: {fileID: 100000, guid: 998a122b19d1dfb4eb03defadb277dcf, type: 3}
   firePoint: {fileID: 4165091424133715631}
