@@ -1,71 +1,117 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
 public class LobbyManager : MonoBehaviour
 {
-    [Header("Main World Map")]
-    public Button[] mainStageButtons; // Stage1, Stage2, Stage3 ¹öÆ°µé
+    [Header("ğŸ“± í…Œë§ˆë³„ UI íŒ¨ë„ (ì¹´ë©”ë¼ stagePositions ë“±ë¡ ìˆœì„œì™€ ë˜‘ê°™ì´ ë°°ì¹˜)")]
+    public GameObject[] themePanels;
+
+    [Header("ğŸ¯ ì „ ì›”ë“œ ë©”ì¸ ìŠ¤í…Œì´ì§€ ë²„íŠ¼ë“¤ (1ë²ˆë¶€í„° 9ë²ˆê¹Œì§€ ìˆœì„œëŒ€ë¡œ ë“±ë¡)")]
+    public Button[] allMainStageButtons;
 
     [Header("Stage Detail Panel")]
     public GameObject stageDetailPanel;
     public TextMeshProUGUI stageTitleText;
-    public Image[] subStageIcons; // 1-1, 1-2, 1-3 ÀÌ¹ÌÁö ¾ÆÀÌÄÜµé
+    public Image[] subStageIcons;
 
     private void Start()
     {
         stageDetailPanel.SetActive(false);
         RefreshMainStages();
+        UpdateThemePanel(0);
     }
 
+    // ğŸ”’ [ì§„ë‹¨ ë¡œê·¸ íƒ‘ì¬] ì„¸ì´ë¸Œ ë°ì´í„°ë¥¼ ì¶”ì í•˜ëŠ” í•´ê¸ˆ í•¨ìˆ˜
     public void RefreshMainStages()
     {
-        int unlockedMain = StageManager.Instance.UnlockedMainStage;
-        for (int i = 0; i < mainStageButtons.Length; i++)
+        if (StageManager.Instance == null)
         {
-            mainStageButtons[i].interactable = ((i + 1) <= unlockedMain);
+            Debug.LogError("âŒ [ë¡œë¹„ ì—ëŸ¬] StageManager í”„ë¦¬íŒ¹ì´ ì”¬ì— ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤! DontDestroyOnLoad ì‘ë™ì„ í™•ì¸í•˜ì„¸ìš”.");
+            return;
+        }
+
+        int unlockedMain = StageManager.Instance.UnlockedMainStage;
+
+        // ğŸ“¢ [í•µì‹¬ ì§„ë‹¨ ë¡œê·¸] ë¡œë¹„ê°€ ì¼œì§ˆ ë•Œ ì½˜ì†”ì°½ì— ì°í ë°ì´í„° ìƒíƒœ
+        Debug.Log($"ğŸ’¾ [ë¡œë¹„ ì„¸ì´ë¸Œ ì¶”ì ] í•˜ë“œë””ìŠ¤í¬ì—ì„œ ì½ì–´ì˜¨ ìµœê³  í•´ê¸ˆ ìŠ¤í…Œì´ì§€ ìˆ˜ì¹˜: {unlockedMain}");
+        Debug.Log($"ğŸ“Š [ë¡œë¹„ ë²„íŠ¼ ì¶”ì ] í˜„ì¬ LobbyManager ì¸ìŠ¤í™í„° ì°½ì— ë“±ë¡ëœ ë²„íŠ¼ ê°œìˆ˜: {allMainStageButtons.Length}ê°œ");
+
+        if (allMainStageButtons.Length == 0)
+        {
+            Debug.LogWarning("âš ï¸ [ê²½ê³ ]allMainStageButtons ë°°ì—´ì´ ë¹„ì–´ìˆìŠµë‹ˆë‹¤! ì¸ìŠ¤í™í„°ì—ì„œ ë²„íŠ¼ë“¤ì„ ë“œë˜ê·¸í•´ ë„£ìœ¼ì…¨ëŠ”ì§€ í™•ì¸í•˜ì„¸ìš”.");
+        }
+
+        for (int i = 0; i < allMainStageButtons.Length; i++)
+        {
+            if (allMainStageButtons[i] == null) continue;
+
+            int stageNum = i + 1;
+
+            if (stageNum <= unlockedMain)
+            {
+                allMainStageButtons[i].interactable = true;
+                allMainStageButtons[i].image.color = Color.white;
+            }
+            else
+            {
+                allMainStageButtons[i].interactable = false;
+                allMainStageButtons[i].image.color = new Color(0.25f, 0.25f, 0.25f, 0.75f);
+            }
         }
     }
 
-    // ¸ŞÀÎ ½ºÅ×ÀÌÁö ¹öÆ° Å¬¸¯ ½Ã È£Ãâ
+    public void UpdateThemePanel(int themeIndex)
+    {
+        if (themePanels == null) return;
+
+        for (int i = 0; i < themePanels.Length; i++)
+        {
+            if (themePanels[i] != null)
+            {
+                themePanels[i].SetActive(i == themeIndex);
+            }
+        }
+    }
+
     public void OnClickMainStage(int stageNum)
     {
-        StageManager.Instance.SelectedMainStage = stageNum;
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.SelectedMainStage = stageNum;
+        }
         stageTitleText.text = $"Stage {stageNum}";
 
         stageDetailPanel.SetActive(true);
         RefreshSubStageIcons(stageNum);
     }
 
-    // ¡Ú ÇÙ½É: ÇØ´ç ¸ŞÀÎ ½ºÅ×ÀÌÁöÀÇ Å¬¸®¾î ±â·Ï¿¡ µû¶ó ¾ÆÀÌÄÜ »ö»ó º¯°æ
     private void RefreshSubStageIcons(int mainStageNum)
     {
-        // ÀÌ ¸ŞÀÎ ½ºÅ×ÀÌÁö¿¡¼­ ³»°¡ "¸î ¹ø ¼­ºê ½ºÅ×ÀÌÁö±îÁö ²£¾ú´ÂÁö" È®ÀÎ
+        if (StageManager.Instance == null) return;
         int maxClearedSub = StageManager.Instance.GetMaxClearedSubStage(mainStageNum);
 
         for (int i = 0; i < subStageIcons.Length; i++)
         {
-            int subStageNum = i + 1; // 1, 2, 3
-
-            // ÇöÀç ¼ø¹ø(subStageNum)ÀÌ ³»°¡ ÃÖ°í·Î Å¬¸®¾îÇÑ ¼ıÀÚº¸´Ù ÀÛ°Å³ª °°À¸¸é ºÒÀ» ÄÔ
+            int subStageNum = i + 1;
             if (subStageNum <= maxClearedSub)
             {
-                subStageIcons[i].color = Color.white; // ¿ø·¡ »ö»ó (Å¬¸®¾î ¿Ï·á Ç¥½Ã)
+                subStageIcons[i].color = Color.white;
             }
             else
             {
-                subStageIcons[i].color = new Color(0.25f, 0.25f, 0.25f, 1f); // ¾îµÎ¿î È¸»ö (¹ÌÅ¬¸®¾î Ç¥½Ã)
+                subStageIcons[i].color = new Color(0.25f, 0.25f, 0.25f, 1f);
             }
         }
     }
 
-    // ¡Ú ÇÙ½É: [PLAY] ¹öÆ° Å¬¸¯ ½Ã
     public void OnClickPlay()
     {
-        // °ÔÀÓ¿À¹ö ÈÄ Àç½ÃÀÛÀÌµç Ã³À½ ½ÃÀÛÀÌµç ¾ğÁ¦³ª "1¹ø ¼­ºê ½ºÅ×ÀÌÁö"ºÎÅÍ Ãâ¹ß!
-        StageManager.Instance.CurrentSubStage = 1;
-
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.CurrentSubStage = 1;
+        }
         SceneManager.LoadScene("GameScene");
     }
 

@@ -1,16 +1,16 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
     public static StageManager Instance { get; private set; }
 
-    // ¸ŞÀÎ ½ºÅ×ÀÌÁö ÇØ±İ »óÈ² (1À» ±ú¸é 2°¡ ¿­¸²)
+    // ë©”ì¸ ìŠ¤í…Œì´ì§€ í•´ê¸ˆ ìƒí™© (1ì„ ê¹¨ë©´ 2ê°€ ì—´ë¦¼)
     public int UnlockedMainStage = 1;
 
-    // ÇöÀç ÇÃ·¹ÀÌ¾î°¡ ¼±ÅÃÇÑ ¸ŞÀÎ ½ºÅ×ÀÌÁö (·Îºñ Ã¢ Ç¥½Ã¿ë)
+    // í˜„ì¬ í”Œë ˆì´ì–´ê°€ ì„ íƒí•œ ë©”ì¸ ìŠ¤í…Œì´ì§€ (ë¡œë¹„ ì°½ í‘œì‹œìš©)
     public int SelectedMainStage = 1;
 
-    // ÇöÀç °ÔÀÓ Ã¢¿¡¼­ µ¹¾Æ°¡°í ÀÖ´Â ¼­ºê ½ºÅ×ÀÌÁö (°ÔÀÓ ¾À ³»ºÎ ÁøÇà¿ë)
+    // í˜„ì¬ ê²Œì„ ì°½ì—ì„œ ëŒì•„ê°€ê³  ìˆëŠ” ì„œë¸Œ ìŠ¤í…Œì´ì§€ (ê²Œì„ ì”¬ ë‚´ë¶€ ì§„í–‰ìš©)
     public int CurrentSubStage = 1;
 
     private void Awake()
@@ -27,29 +27,27 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // Æ¯Á¤ ¸ŞÀÎ ½ºÅ×ÀÌÁöÀÇ ÃÖ°í Å¬¸®¾î ¼­ºê ½ºÅ×ÀÌÁö ¹øÈ£¸¦ °¡Á®¿À´Â ÇÔ¼ö
     public int GetMaxClearedSubStage(int mainStageNum)
     {
-        // ±úº» ÀûÀÌ ¾ø´Ù¸é 0 ¸®ÅÏ
         return PlayerPrefs.GetInt($"MainStage_{mainStageNum}_ClearedSub", 0);
     }
 
-    // ¼­ºê ½ºÅ×ÀÌÁö¸¦ Å¬¸®¾îÇßÀ» ¶§ ±â·ÏÀ» °æ½ÅÇÏ´Â ÇÔ¼ö
+    // ğŸ› ï¸ [ì¡°ê±´ì‹ ë³´ì™„] ì–´ë–¤ ì˜ˆì™¸ ìƒí™©ì—ì„œë„ ì•ˆì „í•˜ê²Œ ë‹¤ìŒ ìŠ¤í…Œì´ì§€ë¥¼ í•´ê¸ˆí•˜ë„ë¡ ìˆ˜ì • ì™„ë£Œ!
     public void ClearSubStage(int mainStageNum, int subStageNum)
     {
         int currentMax = GetMaxClearedSubStage(mainStageNum);
 
-        // ÀÌ¹ø¿¡ ±ü ½ºÅ×ÀÌÁö°¡ ±âÁ¸ ±â·Ïº¸´Ù ³ô´Ù¸é ±â·Ï °æ½Å!
         if (subStageNum > currentMax)
         {
             PlayerPrefs.SetInt($"MainStage_{mainStageNum}_ClearedSub", subStageNum);
         }
 
-        // ¸¸¾à 1-3±îÁö ´Ù ²£´Ù¸é ´ÙÀ½ ¸ŞÀÎ ½ºÅ×ÀÌÁö(Stage 2)¸¦ ÇØ±İ
-        if (subStageNum == 3 && mainStageNum == UnlockedMainStage)
+        // â­ [ë³€ê²½] ì¹¼ ê°™ì€ ì¹¼ë§¤ì¹­ ëŒ€ì‹ , í˜„ì¬ ê¹¬ ìŠ¤í…Œì´ì§€ê°€ í•´ê¸ˆ ìˆ˜ì¹˜ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ìœ¼ë©´ ë¬´ì¡°ê±´ ë‹¤ìŒ ë‹¨ê³„ í•´ê¸ˆ!
+        if (subStageNum == 3 && mainStageNum >= UnlockedMainStage)
         {
             UnlockedMainStage = mainStageNum + 1;
             PlayerPrefs.SetInt("UnlockedMainStage", UnlockedMainStage);
+            Debug.Log($"ğŸ”“ [ì„¸ì´ë¸Œ ì„±ê³µ] ë‹¤ìŒ ëŒ€ìŠ¤í…Œì´ì§€ í•´ê¸ˆ ì™„ë£Œ! í˜„ì¬ í•´ê¸ˆëœ ìµœê³  ìŠ¤í…Œì´ì§€: {UnlockedMainStage}");
         }
 
         PlayerPrefs.Save();

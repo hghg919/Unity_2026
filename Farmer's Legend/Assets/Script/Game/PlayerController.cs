@@ -105,12 +105,19 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // PlayerController.cs 내부
     void PlayerDie()
     {
         isDead = true;
-        rb.linearVelocity = Vector3.zero; // 물리 이동 즉시 멈춤
+        rb.linearVelocity = Vector3.zero;
         moveVelocity = Vector3.zero;
         Debug.Log("💀 게임 오버! 플레이어가 사망했습니다.");
+
+        // ⭐ [사망 연동] 인게임 매니저에게 실패 모드 결과창을 띄우라고 명령합니다.
+        if (InGameStageManager.Instance != null)
+        {
+            InGameStageManager.Instance.PlayerDied();
+        }
     }
 
     // ⭐ [수정 완료] 보상방 카드 클릭 시 실제 스탯을 영구 강화해 주는 함수

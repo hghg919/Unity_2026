@@ -1,17 +1,17 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro; // TextMeshPro¸¦ »ç¿ëÇÏ±â À§ÇØ ²À ÇÊ¿äÇÕ´Ï´Ù.
+using TMPro; // TextMeshProë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•´ ê¼­ í•„ìš”í•©ë‹ˆë‹¤.
 
 public class StageCameraController : MonoBehaviour
 {
-    [Header("Ä«¸Ş¶ó ¼³Á¤")]
-    public Vector3[] stagePositions; // 3°³ÀÇ ½ºÅ×ÀÌÁö ÁÂÇ¥ (³óÀå, °­, ¹Ù´Ù ¼ø¼­)
+    [Header("ì¹´ë©”ë¼ ì„¤ì •")]
+    public Vector3[] stagePositions; // 3ê°œì˜ ìŠ¤í…Œì´ì§€ ì¢Œí‘œ (ë†ì¥, ê°•, ë°”ë‹¤ ìˆœì„œ)
     public float moveSpeed = 5f;
     public float dragThreshold = 50f;
 
-    [Header("UI ¼³Á¤")]
-    public TextMeshProUGUI stageTitleText; // °£ÆÇ À§ÀÇ TMP ÅØ½ºÆ® ÄÄÆ÷³ÍÆ®
-    public string[] stageNames; // °¢ ½ºÅ×ÀÌÁö¿¡ Ç¥½ÃµÉ ÀÌ¸§µé
+    [Header("UI ì„¤ì •")]
+    public TextMeshProUGUI stageTitleText; // ê°„íŒ ìœ„ì˜ TMP í…ìŠ¤íŠ¸ ì»´í¬ë„ŒíŠ¸
+    public string[] stageNames; // ê° ìŠ¤í…Œì´ì§€ì— í‘œì‹œë  ì´ë¦„ë“¤
 
     public int currentStageIndex = 0;
     private Vector2 touchStartPos;
@@ -20,18 +20,18 @@ public class StageCameraController : MonoBehaviour
     {
         HandleMouseInput();
         MoveToStage();
-        UpdateStageUI(); // ¸Å ÇÁ·¹ÀÓ UI »óÅÂ È®ÀÎ
+        UpdateStageUI(); // ë§¤ í”„ë ˆì„ UI ìƒíƒœ í™•ì¸
     }
 
     void HandleMouseInput()
     {
-        // ¸¶¿ì½º ¿ŞÂÊ ¹öÆ° Å¬¸¯ ½ÃÀÛ
+        // ë§ˆìš°ìŠ¤ ì™¼ìª½ ë²„íŠ¼ í´ë¦­ ì‹œì‘
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             touchStartPos = Mouse.current.position.ReadValue();
         }
 
-        // ¸¶¿ì½º ¿ŞÂÊ ¹öÆ° Å¬¸¯ ÇØÁ¦
+        // ë§ˆìš°ìŠ¤ ì™¼ìª½ ë²„íŠ¼ í´ë¦­ í•´ì œ
         if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
             Vector2 touchEndPos = Mouse.current.position.ReadValue();
@@ -41,11 +41,11 @@ public class StageCameraController : MonoBehaviour
             {
                 if (swipeDistance < 0 && currentStageIndex < stagePositions.Length - 1)
                 {
-                    currentStageIndex++; // ´ÙÀ½ ½ºÅ×ÀÌÁö
+                    currentStageIndex++; // ë‹¤ìŒ ìŠ¤í…Œì´ì§€
                 }
                 else if (swipeDistance > 0 && currentStageIndex > 0)
                 {
-                    currentStageIndex--; // ÀÌÀü ½ºÅ×ÀÌÁö
+                    currentStageIndex--; // ì´ì „ ìŠ¤í…Œì´ì§€
                 }
             }
         }
@@ -53,16 +53,23 @@ public class StageCameraController : MonoBehaviour
 
     void MoveToStage()
     {
-        // ¸ñÇ¥ ÁÂÇ¥·Î ºÎµå·´°Ô ÀÌµ¿
+        // ëª©í‘œ ì¢Œí‘œë¡œ ë¶€ë“œëŸ½ê²Œ ì´ë™
         transform.position = Vector3.Lerp(transform.position, stagePositions[currentStageIndex], Time.deltaTime * moveSpeed);
     }
 
     void UpdateStageUI()
     {
-        // ÇöÀç ÀÎµ¦½º¿¡ ¸Â´Â ÅØ½ºÆ®·Î º¯°æ
+        // í˜„ì¬ ì¸ë±ìŠ¤ì— ë§ëŠ” í…ìŠ¤íŠ¸ë¡œ ë³€ê²½
         if (stageTitleText != null && stageNames.Length > currentStageIndex)
         {
             stageTitleText.text = stageNames[currentStageIndex];
+        }
+
+        // â­ [ì¶”ê°€] ì¹´ë©”ë¼ê°€ ë“œë˜ê·¸ë¡œ ìŠ¬ë¼ì´ë“œë  ë•Œ, ë¡œë¹„ ë§¤ë‹ˆì €ì—ê²Œ ë²„íŠ¼ íŒ¨ë„ì„ ë°”ê¾¸ë¼ê³  ì‹¤ì‹œê°„ ëª…ë ¹!
+        LobbyManager lobby = FindFirstObjectByType<LobbyManager>();
+        if (lobby != null)
+        {
+            lobby.UpdateThemePanel(currentStageIndex);
         }
     }
 }
