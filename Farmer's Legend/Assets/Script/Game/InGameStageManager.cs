@@ -56,6 +56,10 @@ public class InGameStageManager : MonoBehaviour
     public Button backToLobbyButton;
     public Image[] resultSubStageIcons;
 
+    // ⭐⭐⭐ [추가] 결과창의 1-1, 1-2, 1-3 텍스트들을 자동으로 바꾸기 위해 인스펙터에서 등록할 슬롯
+    [Header("📝 결과창 서브 스테이지 번호 텍스트들 (3개 순서대로 등록)")]
+    public TextMeshProUGUI[] resultSubStageTexts;
+
     private List<GameObject> enemiesInRoom = new List<GameObject>();
 
     private int localMainStage = 1;
@@ -220,7 +224,7 @@ public class InGameStageManager : MonoBehaviour
         SpawnNextWave();
     }
 
-    // 🛠️ [대소문자 오타 수정 완료] RoomNum -> roomNum 버그를 완벽히 잡았습니다!
+    // InGameStageManager.cs 내부의 ShowEndGamePanel 함수를 이 코드로 통째로 바꾸시면 됩니다.
     IEnumerator ShowEndGamePanel(bool isWin)
     {
         int mainStage = StageManager.Instance != null ? StageManager.Instance.SelectedMainStage : localMainStage;
@@ -231,6 +235,18 @@ public class InGameStageManager : MonoBehaviour
             StageManager.Instance.ClearSubStage(mainStage, 3);
         }
 
+        // 1. [기존 구현] 결과창 서브 스테이지 텍스트 자동 치환 (1-1, 1-2, 1-3 등으로 글자 변경)
+        if (resultSubStageTexts != null)
+        {
+            for (int i = 0; i < resultSubStageTexts.Length; i++)
+            {
+                if (resultSubStageTexts[i] != null)
+                {
+                    resultSubStageTexts[i].text = $"{mainStage}-{i + 1}";
+                }
+            }
+        }
+
         Time.timeScale = 0f;
         if (resultPanel != null) resultPanel.SetActive(true);
         if (replayButton != null) replayButton.interactable = false;
@@ -238,14 +254,15 @@ public class InGameStageManager : MonoBehaviour
 
         if (resultTitleText != null)
         {
-            resultTitleText.text = isWin ? "STAGE CLEAR!" : "DEFEATED...";
+            resultTitleText.text = isWin ? "STAGE CLEAR" : "DEFEATED";
             resultTitleText.color = isWin ? Color.green : Color.red;
         }
         if (replayButtonText != null)
         {
-            replayButtonText.text = isWin ? "다시하기" : "처음부터 도전";
+            replayButtonText.text = isWin ? "RePlay" : "ReStart";
         }
 
+        // 2. 일단 모든 메달 아이콘을 기본 회색 상태로 초기화합니다.
         for (int i = 0; i < resultSubStageIcons.Length; i++)
         {
             if (resultSubStageIcons[i] != null)
@@ -256,8 +273,12 @@ public class InGameStageManager : MonoBehaviour
         }
         yield return new WaitForSecondsRealtime(0.2f);
 
+        // ⭐⭐⭐ [해결책 1 핵심 적용] 하드디스크 세이브 데이터에서 기존 최고 클리어 기록을 조회합니다.
+        int maxClearedSub = StageManager.Instance != null ? StageManager.Instance.GetMaxClearedSubStage(mainStage) : 0;
+
         if (isWin)
         {
+            // 스테이지를 이겼을 때는 순차적으로 커지면서 전부 불이 들어오는 연출을 실행합니다.
             for (int i = 0; i < resultSubStageIcons.Length; i++)
             {
                 if (resultSubStageIcons[i] == null) continue;
@@ -268,20 +289,26 @@ public class InGameStageManager : MonoBehaviour
         }
         else
         {
-            // 🎯 오타 수정된 사망 시 성취도 시각화 루프
+            // ⭐ [수정] 플레이어가 죽었을 때: 
+            // '기존 최고 기록(maxClearedSub)' 이하이거나, '이번 판에 깨고 넘어왔던 방(roomNum < currentSub)'이라면 불을 켜둡니다!
             for (int i = 0; i < resultSubStageIcons.Length; i++)
             {
                 int roomNum = i + 1;
                 if (resultSubStageIcons[i] == null) continue;
 
-                if (roomNum < currentSub)
+                if (roomNum <= maxClearedSub || roomNum < currentSub)
                 {
-                    resultSubStageIcons[roomNum - 1].color = Color.white;
+                    resultSubStageIcons[i].color = Color.white; // 해금 상태는 하얀색 원래 아이콘
+                }
+                else
+                {
+                    resultSubStageIcons[i].color = new Color(0.25f, 0.25f, 0.25f, 1f); // 미클리어는 회색 유지
                 }
             }
             yield return null;
         }
 
+        // 결과창 버튼 로직 연결 (기존 코드 유지)
         if (replayButton != null)
         {
             replayButton.interactable = true;

@@ -1,51 +1,76 @@
-using UnityEngine;
-using UnityEngine.SceneManagement; // ¾À ÀÌµ¿À» À§ÇØ ÇÊ¿ä
+ï»¿using UnityEngine;
+using UnityEngine.SceneManagement; // ì”¬ ì´ë™ì„ ìœ„í•´ í•„ìš”
 #if UNITY_EDITOR
-using UnityEditor; // ¿¡µğÅÍ¿¡¼­ Á¾·á È®ÀÎÀ» À§ÇØ ÇÊ¿ä
+using UnityEditor; // ì—ë””í„°ì—ì„œ ì¢…ë£Œ í™•ì¸ì„ ìœ„í•´ í•„ìš”
 #endif
 
 public class PauseMenuController : MonoBehaviour
 {
-    [Header("UI ÂüÁ¶")]
-    public GameObject pausePanel; // °¡¿îµ¥ ¶ß´Â ÀÏ½ÃÁ¤Áö Ã¢
+    [Header("UI ì°¸ì¡°")]
+    public GameObject pausePanel; // ê°€ìš´ë° ëœ¨ëŠ” ì¼ì‹œì •ì§€ ì°½ (SettingsPanel)
 
     void Start()
     {
-        // ½ÃÀÛÇÒ ¶§´Â ÀÏ½ÃÁ¤Áö Ã¢À» ¼û±é´Ï´Ù.
+        // ì‹œì‘í•  ë•ŒëŠ” ì¼ì‹œì •ì§€ ì°½ì„ ìˆ¨ê¹ë‹ˆë‹¤.
         if (pausePanel != null)
             pausePanel.SetActive(false);
     }
 
-    // 1. ÀÏ½ÃÁ¤Áö Ã¢ ¿­±â (¿ìÃø »ó´Ü || ¹öÆ°¿¡ ¿¬°á)
+    // 1. ì¼ì‹œì •ì§€ ì°½ ì—´ê¸° (ìš°ì¸¡ ìƒë‹¨ || ë²„íŠ¼ì— ì—°ê²°)
     public void OpenPauseMenu()
     {
-        pausePanel.SetActive(true);
-        Time.timeScale = 0f; // °ÔÀÓ ½Ã°£À» ¸ØÃã (ÇÊ¿ä ½Ã)
+        // ë¡œë¹„ ë§¤ë‹ˆì €ê°€ ìˆì„ ë•Œë§Œ ìƒì„¸ì°½ ì²´í¬ë¥¼ í•˜ê³ , ì—†ì„ ë•Œ(ê²Œì„ì”¬)ëŠ” ê·¸ëƒ¥ í†µê³¼í•©ë‹ˆë‹¤.
+        LobbyManager lobby = FindFirstObjectByType<LobbyManager>();
+        if (lobby != null && lobby.stageDetailPanel != null && lobby.stageDetailPanel.activeInHierarchy)
+        {
+            Debug.LogWarning("âš ï¸ ìŠ¤í…Œì´ì§€ ì„¸ë¶€ ì •ë³´ ì°½ì´ ì—´ë ¤ ìˆì–´ ì¼ì‹œì •ì§€ ì°½ ì˜¤í”ˆì„ ì°¨ë‹¨í•©ë‹ˆë‹¤.");
+            return;
+        }
+
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(true);
+            Time.timeScale = 0f; // ê²Œì„ ì‹œê°„ì„ ë©ˆì¶¤
+        }
     }
 
-    // 2. ÀÏ½ÃÁ¤Áö Ã¢ ´İ±â (X ¹öÆ°¿¡ ¿¬°á)
+    // 2. ì¼ì‹œì •ì§€ ì°½ ë‹«ê¸° (X ë²„íŠ¼ì— ì—°ê²°)
     public void ClosePauseMenu()
     {
-        pausePanel.SetActive(false);
-        Time.timeScale = 1f; // °ÔÀÓ ½Ã°£À» ´Ù½Ã Èå¸£°Ô ÇÔ
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false);
+            Time.timeScale = 1f; // ê²Œì„ ì‹œê°„ì„ ë‹¤ì‹œ íë¥´ê²Œ í•¨
+        }
     }
 
-    // 3. Å¸ÀÌÆ² ¾ÀÀ¸·Î ÀÌµ¿ (Title ¹öÆ°¿¡ ¿¬°á)
+    // 3. íƒ€ì´í‹€ ì”¬ìœ¼ë¡œ ì´ë™ (Title ë²„íŠ¼ì— ì—°ê²°)
     public void GoToTitle()
     {
-        Time.timeScale = 1f; // ÀÌµ¿ Àü ½Ã°£ ÃÊ±âÈ­´Â ÇÊ¼ö!
-        SceneManager.LoadScene("TitleScene"); // ¾À ÀÌ¸§ÀÌ Á¤È®ÇØ¾ß ÇÔ
+        Time.timeScale = 1f; // ì´ë™ ì „ ì‹œê°„ ì´ˆê¸°í™”ëŠ” í•„ìˆ˜!
+        SceneManager.LoadScene("TitleScene");
     }
 
-    // 4. °ÔÀÓ Á¾·á (Quit ¹öÆ°¿¡ ¿¬°á)
+    // â­ [ì¶”ê°€] ë¡œë¹„ ì”¬ìœ¼ë¡œ ì´ë™ (ê²Œì„ ë„ì¤‘ ë‚˜ê°ˆ ë•Œ ì‚¬ìš©)
+    public void GoToLobby()
+    {
+        Time.timeScale = 1f; // ì‹œê°„ ì´ˆê¸°í™”
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.CurrentSubStage = 1; // ì§„í–‰ ì¤‘ì´ë˜ ì„œë¸ŒìŠ¤í…Œì´ì§€ ì´ˆê¸°í™”
+        }
+        SceneManager.LoadScene("LobbyScene");
+    }
+
+    // 4. ê²Œì„ ì¢…ë£Œ (Quit ë²„íŠ¼ì— ì—°ê²°)
     public void QuitGame()
     {
-        Debug.Log("°ÔÀÓ Á¾·á!");
+        Debug.Log("ê²Œì„ ì¢…ë£Œ!");
 
 #if UNITY_EDITOR
-        EditorApplication.isPlaying = false; // ¿¡µğÅÍ¿¡¼­ ½ÇÇà ÁßÀÏ ¶§
+        EditorApplication.isPlaying = false; // ì—ë””í„°ì—ì„œ ì‹¤í–‰ ì¤‘ì¼ ë•Œ
 #else
-            Application.Quit(); // ºôµåµÈ °ÔÀÓ¿¡¼­ ½ÇÇà ÁßÀÏ ¶§
+        Application.Quit(); // ë¹Œë“œëœ ê²Œì„ì—ì„œ ì‹¤í–‰ ì¤‘ì¼ ë•Œ
 #endif
     }
 }

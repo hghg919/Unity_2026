@@ -16,6 +16,10 @@ public class LobbyManager : MonoBehaviour
     public TextMeshProUGUI stageTitleText;
     public Image[] subStageIcons;
 
+    // ⭐⭐⭐ [추가] 1-1, 1-2 텍스트들을 자동으로 바꾸기 위해 인스펙터에서 등록할 슬롯
+    [Header("📝 서브 스테이지 번호 텍스트들 (3개 순서대로 등록)")]
+    public TextMeshProUGUI[] subStageTexts;
+
     private void Start()
     {
         stageDetailPanel.SetActive(false);
@@ -23,7 +27,6 @@ public class LobbyManager : MonoBehaviour
         UpdateThemePanel(0);
     }
 
-    // 🔒 [진단 로그 탑재] 세이브 데이터를 추적하는 해금 함수
     public void RefreshMainStages()
     {
         if (StageManager.Instance == null)
@@ -34,7 +37,6 @@ public class LobbyManager : MonoBehaviour
 
         int unlockedMain = StageManager.Instance.UnlockedMainStage;
 
-        // 📢 [핵심 진단 로그] 로비가 켜질 때 콘솔창에 찍힐 데이터 상태
         Debug.Log($"💾 [로비 세이브 추적] 하드디스크에서 읽어온 최고 해금 스테이지 수치: {unlockedMain}");
         Debug.Log($"📊 [로비 버튼 추적] 현재 LobbyManager 인스펙터 창에 등록된 버튼 개수: {allMainStageButtons.Length}개");
 
@@ -77,6 +79,13 @@ public class LobbyManager : MonoBehaviour
 
     public void OnClickMainStage(int stageNum)
     {
+        // [이전 피드백 반영] 일시정지 창이 열려 있다면 스테이지 선택 차단
+        PauseMenuController pauseMenu = FindFirstObjectByType<PauseMenuController>();
+        if (pauseMenu != null && pauseMenu.pausePanel != null && pauseMenu.pausePanel.activeInHierarchy)
+        {
+            return;
+        }
+
         if (StageManager.Instance != null)
         {
             StageManager.Instance.SelectedMainStage = stageNum;
@@ -84,7 +93,7 @@ public class LobbyManager : MonoBehaviour
         stageTitleText.text = $"Stage {stageNum}";
 
         stageDetailPanel.SetActive(true);
-        RefreshSubStageIcons(stageNum);
+        RefreshSubStageIcons(stageNum); // 여기서 스테이지 번호를 넘겨 UI를 그립니다.
     }
 
     private void RefreshSubStageIcons(int mainStageNum)
@@ -95,6 +104,13 @@ public class LobbyManager : MonoBehaviour
         for (int i = 0; i < subStageIcons.Length; i++)
         {
             int subStageNum = i + 1;
+
+            // ⭐⭐⭐ [핵심 추가] 현재 클릭한 대스테이지 번호에 맞춰서 텍스트를 "2-1", "2-2" 등으로 실시간 조립합니다.
+            if (subStageTexts != null && i < subStageTexts.Length && subStageTexts[i] != null)
+            {
+                subStageTexts[i].text = $"{mainStageNum}-{subStageNum}";
+            }
+
             if (subStageNum <= maxClearedSub)
             {
                 subStageIcons[i].color = Color.white;
