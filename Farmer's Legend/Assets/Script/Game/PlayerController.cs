@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI; // UI Image 컴포넌트를 제어하기 위해 필요합니다.
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,10 +20,16 @@ public class PlayerController : MonoBehaviour
     private int currentHealth;
     private bool isDead = false;
 
+    [Header("UI 연동")]
+    public Image[] hpImages; // 인스펙터에서 구급상자 이미지 3개 등록
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         currentHealth = maxHealth; // 시작할 때 체력 풀피로 설정
+
+        // 게임 시작 시 체력 UI를 풀피 상태로 초기화합니다.
+        UpdateHpUI();
     }
 
     void Update()
@@ -99,13 +106,15 @@ public class PlayerController : MonoBehaviour
         currentHealth -= damage;
         Debug.Log("💥 플레이어 피격! 남은 체력: " + currentHealth);
 
+        // 피격 시 체력 UI를 실시간으로 갱신합니다.
+        UpdateHpUI();
+
         if (currentHealth <= 0)
         {
             PlayerDie();
         }
     }
 
-    // PlayerController.cs 내부
     void PlayerDie()
     {
         isDead = true;
@@ -113,36 +122,57 @@ public class PlayerController : MonoBehaviour
         moveVelocity = Vector3.zero;
         Debug.Log("💀 게임 오버! 플레이어가 사망했습니다.");
 
-        // ⭐ [사망 연동] 인게임 매니저에게 실패 모드 결과창을 띄우라고 명령합니다.
         if (InGameStageManager.Instance != null)
         {
             InGameStageManager.Instance.PlayerDied();
         }
     }
 
-    // ⭐ [수정 완료] 보상방 카드 클릭 시 실제 스탯을 영구 강화해 주는 함수
+    // ⭐⭐⭐ [핵심 수정] 구급상자를 끄지 않고, 반투명한 검은색/흑백조로 변경하는 함수
+    void UpdateHpUI()
+    {
+        if (hpImages == null || hpImages.Length == 0) return;
+
+        for (int i = 0; i < hpImages.Length; i++)
+        {
+            if (hpImages[i] == null) continue;
+
+            // 이미지가 무조건 화면에 켜져 있도록 강제하되, 색상만 변경합니다.
+            hpImages[i].gameObject.SetActive(true);
+
+            if (i < currentHealth)
+            {
+                // 1. 체력이 남아있는 칸: 원본 컬러 그대로 선명하게 표시 (RGB: 1, 1, 1 / Alpha: 1)
+                hpImages[i].color = Color.white;
+            }
+            else
+            {
+                // 2. 체력이 깎인 칸: 어두운 회색조(0.25f)로 다운시키고 + 투명도를 30%(0.3f)로 낮춰 반투명 흑백 효과 연출
+                hpImages[i].color = new Color(0.25f, 0.25f, 0.25f, 0.3f);
+            }
+        }
+    }
+
     public void ApplyReward(string rewardType)
     {
         switch (rewardType)
         {
             case "FireRateUp":
-                // 🏹 공격 주기(간격)를 줄여서 공격 속도를 빠르게 만듭니다. (최소 0.1초 제한)
                 attackRate = Mathf.Max(0.1f, attackRate - 0.05f);
-                Debug.Log($"🏹 곡괭이 선택: 공속 증가! 현재 공격 속도 주기: {attackRate}초");
+                Debug.Log($"🏹 공속 증가! 현재 공격 속도 주기: {attackRate}초");
                 break;
 
             case "MoveSpeedUp":
-                // 👟 이동 속도 변수 자체를 누적 증가시킵니다.
                 moveSpeed += 1.0f;
-                Debug.Log($"👟 삽 선택: 이속 증가! 현재 이동 속도: {moveSpeed}");
+                Debug.Log($"👟 이속 증가! 현재 이동 속도: {moveSpeed}");
                 break;
 
             case "Heal":
-                // 📚 최대 체력(maxHealth)을 넘지 않는 선에서 체력을 1 회복시킵니다.
                 currentHealth = Mathf.Min(maxHealth, currentHealth + 1);
-                Debug.Log($"📚 책 선택: 체력 1 회복! 현재 체력: {currentHealth}/{maxHealth}");
+                Debug.Log($"📚 체력 1 회복! 현재 체력: {currentHealth}/{maxHealth}");
 
-                // [나중에 체력 UI 연동 시 여기에 UI 갱신 코드를 넣으면 됩니다]
+                // 보상방에서 구급상자를 먹어 치유될 때도 UI를 실시간 갱신합니다.
+                UpdateHpUI();
                 break;
         }
     }
