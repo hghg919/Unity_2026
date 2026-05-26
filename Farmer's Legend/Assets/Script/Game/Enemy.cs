@@ -1,25 +1,25 @@
-using UnityEngine;
-using UnityEngine.AI; // NavMesh »ç¿ëÀ» À§ÇØ ÇÊ¼ö
+ï»¿using UnityEngine;
+using UnityEngine.AI; // NavMesh ì‚¬ìš©ì„ ìœ„í•´ í•„ìˆ˜
 
 public class Enemy : MonoBehaviour
 {
-    // 1. ±âº» ´É·ÂÄ¡ ¼³Á¤
+    // 1. ê¸°ë³¸ ëŠ¥ë ¥ì¹˜ ì„¤ì •
     public int maxHealth = 1;
     private int currentHealth;
 
-    // 2. AI À¯Çü ¼³Á¤ (ÀÎ½ºÆåÅÍ Ã¢¿¡¼­ °í¸¦ ¼ö ÀÖÀ½)
+    // 2. AI ìœ í˜• ì„¤ì • (ì¸ìŠ¤í™í„° ì°½ì—ì„œ ê³ ë¥¼ ìˆ˜ ìˆìŒ)
     public enum EnemyType { Melee, Ranged }
-    [Header("AI À¯Çü °áÁ¤")]
+    [Header("AI ìœ í˜• ê²°ì •")]
     public EnemyType enemyType = EnemyType.Melee;
 
-    [Header("¿ø°Å¸® ¿É¼Ç (Ranged Only)")]
-    public float attackRange = 7f;       // ¿ø°Å¸® ¸÷ÀÌ ¸ØÃç¼­ °ø°İÇÒ »çÁ¤°Å¸®
-    public GameObject enemyProjectile;  // ÀûÀÌ ¹ß»çÇÒ ¶Ë/È­»ì ÇÁ¸®ÆÕ
-    public Transform firePoint;          // ÀûÀÇ ÃÑ±¸ À§Ä¡
-    public float attackRate = 1.5f;      // °ø°İ ÁÖ±â (ÃÊ)
+    [Header("ì›ê±°ë¦¬ ì˜µì…˜ (Ranged Only)")]
+    public float attackRange = 7f;       // ì›ê±°ë¦¬ ëª¹ì´ ë©ˆì¶°ì„œ ê³µê²©í•  ì‚¬ì •ê±°ë¦¬
+    public GameObject enemyProjectile;  // ì ì´ ë°œì‚¬í•  ë˜¥/í™”ì‚´ í”„ë¦¬íŒ¹
+    public Transform firePoint;          // ì ì˜ ì´êµ¬ ìœ„ì¹˜
+    public float attackRate = 1.5f;      // ê³µê²© ì£¼ê¸° (ì´ˆ)
     private float nextAttackTime = 0f;
 
-    // ³»ºñ°ÔÀÌ¼Ç ¹× ÇÃ·¹ÀÌ¾î ÂüÁ¶
+    // ë‚´ë¹„ê²Œì´ì…˜ ë° í”Œë ˆì´ì–´ ì°¸ì¡°
     private NavMeshAgent agent;
     private Transform playerTransform;
 
@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour
         currentHealth = maxHealth;
         agent = GetComponent<NavMeshAgent>();
 
-        // ÇÃ·¹ÀÌ¾î Ã£±â
+        // í”Œë ˆì´ì–´ ì°¾ê¸°
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -36,35 +36,34 @@ public class Enemy : MonoBehaviour
         }
         if (InGameStageManager.Instance != null)
             InGameStageManager.Instance.RegisterEnemy(this.gameObject);
-
     }
 
     void Update()
     {
         if (playerTransform == null || agent == null) return;
 
-        // ÇÃ·¹ÀÌ¾î¿ÍÀÇ °Å¸® °è»ê
+        // í”Œë ˆì´ì–´ì™€ì˜ ê±°ë¦¬ ê³„ì‚°
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         if (enemyType == EnemyType.Melee)
         {
-            // [±ÙÁ¢Çü] Àå¾Ö¹° ÇÇÇØ ¹«Á¶°Ç ³¡±îÁö ÂÑ¾Æ°¨
+            // [ê·¼ì ‘í˜•] ì¥ì• ë¬¼ í”¼í•´ ë¬´ì¡°ê±´ ëê¹Œì§€ ì«“ì•„ê°
             agent.SetDestination(playerTransform.position);
         }
         else if (enemyType == EnemyType.Ranged)
         {
-            // [¿ø°Å¸®Çü]
-            if (distanceToPlayer <= attackRange)
+            // â­â­â­ [ì¸ê³µì§€ëŠ¥ ëŒ€í­ ê³ ë„í™”] 
+            // ì‚¬ì •ê±°ë¦¬ ì•ˆì´ë©´ì„œ 'ë™ì‹œì— ë²½ì— ê°€ë ¤ì§€ì§€ ì•Šê³  ëˆˆì— ë³´ì¼ ë•Œë§Œ' ì œìë¦¬ì— ì„œì„œ ê³µê²©í•©ë‹ˆë‹¤!
+            if (distanceToPlayer <= attackRange && HasLineOfSight())
             {
-                // »çÁ¤°Å¸® ¾ÈÀÌ¸é Ãß°İÀ» ¸ØÃß°í Á¦ÀÚ¸®¿¡ ¼­¼­ °ø°İ
-                agent.ResetPath(); // ¸ØÃß±â
+                agent.ResetPath(); // ì¡°ê±´ì´ ë‹¤ ë§ì„ ë•Œë§Œ ë©ˆì¶”ê¸°
 
-                // ÇÃ·¹ÀÌ¾î ¹Ù¶óº¸±â
+                // í”Œë ˆì´ì–´ ë°”ë¼ë³´ê¸°
                 Vector3 lookDir = (playerTransform.position - transform.position).normalized;
                 lookDir.y = 0;
                 transform.rotation = Quaternion.LookRotation(lookDir);
 
-                // °ø°İ Å¸ÀÌ¹Ö Ã¼Å©
+                // ê³µê²© íƒ€ì´ë° ì²´í¬
                 if (Time.time >= nextAttackTime)
                 {
                     RangedAttack();
@@ -72,10 +71,35 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                // »çÁ¤°Å¸®º¸´Ù ¸Ö¸é ´Ù½Ã ÇÃ·¹ÀÌ¾î ÂÑ¾Æ°¡±â
+                // ğŸ’¡ [í•µì‹¬] ì‚¬ê±°ë¦¬ë³´ë‹¤ ë©€ê±°ë‚˜, í˜¹ì€ ì‚¬ê±°ë¦¬ ì•ˆì´ë”ë¼ë„ ë²½ì— ê°€ë ¤ì ¸ì„œ ì•ˆ ë³´ì´ë©´?
+                // í”Œë ˆì´ì–´ê°€ ëˆˆì— ë³´ì¼ ë•Œê¹Œì§€ ë„¤ë¹„ë©”ì‰¬ ê¸¸ì„ ë”°ë¼ ë²½ì„ ëŒì•„ì„œ ê³„ì† ì¶”ê²©í•©ë‹ˆë‹¤!
                 agent.SetDestination(playerTransform.position);
             }
         }
+    }
+
+    // ì ê³¼ í”Œë ˆì´ì–´ ì‚¬ì´ì— ë²½(Wall)ì´ ê°€ë¡œë§‰ê³  ìˆëŠ”ì§€ ì‹¤ì‹œê°„ ë ˆì´ì € ê²€ì‚¬
+    bool HasLineOfSight()
+    {
+        if (firePoint == null || playerTransform == null) return false;
+
+        // í”Œë ˆì´ì–´ì˜ ì¤‘ì‹¬ì ì„ ì¡°ì¤€í•˜ë„ë¡ ì‚´ì§ ë†’ì´ ë³´ì • (í”¼ë²—ì´ ë°œë°”ë‹¥ì¼ ê²½ìš° ë ˆì´ì €ê°€ ë°”ë‹¥ì— ë‹¿ëŠ” ê²ƒ ë°©ì§€)
+        Vector3 targetCenter = playerTransform.position + Vector3.up * 0.5f;
+        Vector3 targetDir = (targetCenter - firePoint.position).normalized;
+        float distance = Vector3.Distance(firePoint.position, targetCenter);
+
+        RaycastHit hit;
+        // ì´êµ¬ ìœ„ì¹˜ì—ì„œ í”Œë ˆì´ì–´ ë°©í–¥ìœ¼ë¡œ ë ˆì´ì €ë¥¼ ì©ë‹ˆë‹¤.
+        if (Physics.Raycast(firePoint.position, targetDir, out hit, distance))
+        {
+            // ë ˆì´ì €ê°€ í”Œë ˆì´ì–´ì—ê²Œ ë‹¿ê¸° ì „ì— "Wall" íƒœê·¸ ì˜¤ë¸Œì íŠ¸ì— ë¶€ë”ªí˜”ë‹¤ë©´ ì‹œì•¼ ì°¨ë‹¨ìœ¼ë¡œ íŒë‹¨
+            if (hit.collider.CompareTag("Wall"))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     void RangedAttack()
@@ -84,7 +108,6 @@ public class Enemy : MonoBehaviour
 
         if (enemyProjectile != null && firePoint != null)
         {
-            // ÀûÀÇ Åõ»çÃ¼ ¹ß»ç (ÇÃ·¹ÀÌ¾î ¹æÇâÀ¸·Î)
             Vector3 targetDir = (playerTransform.position - firePoint.position).normalized;
             targetDir.y = 0;
             Instantiate(enemyProjectile, firePoint.position, Quaternion.LookRotation(targetDir));
@@ -107,22 +130,15 @@ public class Enemy : MonoBehaviour
 
         Destroy(gameObject);
     }
-    // --- Enemy ½ºÅ©¸³Æ® ¸Ç ¾Æ·¡(Die ÇÔ¼ö ¹Ø)¿¡ Ãß°¡ÇÒ ³»¿ë ---
 
-    // ¹°¸®ÀûÀ¸·Î ¹«¾ğ°¡¿Í ºÎµúÇûÀ» ¶§ ½ÇÇàµÇ´Â À¯´ÏÆ¼ ³»Àå ÇÔ¼ö
     void OnCollisionEnter(Collision collision)
     {
-        // ³»°¡ ±ÙÁ¢ ¸÷ÀÌ°í, ºÎµúÈù ´ë»óÀÇ ÅÂ±×°¡ "Player" ¶ó¸é
         if (enemyType == EnemyType.Melee && collision.gameObject.CompareTag("Player"))
         {
             PlayerController player = collision.gameObject.GetComponent<PlayerController>();
             if (player != null)
             {
-                player.TakeDamage(1); // ÇÃ·¹ÀÌ¾î¿¡°Ô 1ÀÇ ´ë¹ÌÁö¸¦ ÁÜ
-
-                // [±âÈ¹ ¼±ÅÃ] ÇÑ ´ë ¶§¸° ¸÷Àº ÀÚÆøÇÏ°Ô ¸¸µé°Å³ª, ¾Æ´Ï¸é °è¼Ó ºÙ¾î¼­ ¶§¸®°Ô µÑ ¼ö ÀÖ½À´Ï´Ù.
-                // ±Ã¼öÀÇ Àü¼³Ã³·³ ÀÚÆø(¼Ò¸ê)½ÃÅ°·Á¸é ¾Æ·¡ ÁÖ¼®À» ÇØÁ¦ÇÏ¼¼¿ä.
-                // Die(); 
+                player.TakeDamage(1);
             }
         }
     }
