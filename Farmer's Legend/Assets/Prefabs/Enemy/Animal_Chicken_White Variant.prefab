@@ -173,11 +173,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   maxHealth: 1
+  moveSpeed: 4
   enemyType: 1
-  attackRange: 7
+  attackRange: 20
   enemyProjectile: {fileID: 6733397597421242598, guid: 2e2c8c5b29ccb1f45bc42f5e5d234f8a, type: 3}
   firePoint: {fileID: 3673594075021066667}
-  attackRate: 1.5
+  attackRate: 3
 --- !u!195 &8265610185935895357
 NavMeshAgent:
   m_ObjectHideFlags: 0

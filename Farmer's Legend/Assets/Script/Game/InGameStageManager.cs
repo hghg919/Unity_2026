@@ -61,6 +61,7 @@ public class InGameStageManager : MonoBehaviour
     public TextMeshProUGUI[] resultSubStageTexts;
 
     private List<GameObject> enemiesInRoom = new List<GameObject>();
+    public List<GameObject> EnemiesInRoom => enemiesInRoom; // ⭐ 플레이어가 이 리스트를 읽을 수 있게 통로 개설
 
     private int localMainStage = 1;
     private int localSubStage = 1;
@@ -388,7 +389,7 @@ public class InGameStageManager : MonoBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
-            playerObj.transform.position = new Vector3(0f, playerObj.transform.position.y, 0f);
+            playerObj.transform.position = new Vector3(0f, playerObj.transform.position.y, -10f);
         }
     }
 

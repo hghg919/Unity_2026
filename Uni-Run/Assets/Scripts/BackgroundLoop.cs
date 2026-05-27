@@ -12,9 +12,10 @@ public class BackgroundLoop : MonoBehaviour {
        
     }
 
-    private void Update() {
+    private void Update()
+    {
         // 현재 위치가 원점에서 왼쪽으로 width 이상 이동했을때 위치를 리셋
-        if (transform.position.x <= width)
+        if (transform.position.x <= -width) //  마이너스(-) 부호를 추가합니다!
         {
             Reposition();
         }

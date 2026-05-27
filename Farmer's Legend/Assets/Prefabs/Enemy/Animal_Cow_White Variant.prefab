@@ -139,6 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   maxHealth: 1
+  moveSpeed: 6
   enemyType: 0
   attackRange: 7
   enemyProjectile: {fileID: 0}

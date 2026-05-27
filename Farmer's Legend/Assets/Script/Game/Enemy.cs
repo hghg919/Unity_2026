@@ -1,11 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.AI; // NavMesh 사용을 위해 필수
+using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
     // 1. 기본 능력치 설정
     public int maxHealth = 1;
     private int currentHealth;
+
+    // ⭐ [추가] 인스펙터에서 개별적으로 조절할 적의 이동속도 (기본값 3.5)
+    [Header("이동 능력치")]
+    public float moveSpeed = 3.5f;
 
     // 2. AI 유형 설정 (인스펙터 창에서 고를 수 있음)
     public enum EnemyType { Melee, Ranged }
@@ -23,10 +28,28 @@ public class Enemy : MonoBehaviour
     private NavMeshAgent agent;
     private Transform playerTransform;
 
+    [Header("타격감 연출")]
+    private Renderer enemyRenderer; // 적의 메시 렌더러 컴포넌트
+    private Color originalColor;    // 원래 색상 저장용
+    private Coroutine flashCoroutine;
+
     void Start()
     {
         currentHealth = maxHealth;
         agent = GetComponent<NavMeshAgent>();
+
+        // ⭐ [추가] 내가 설정한 이동속도를 NavMeshAgent에 주입합니다.
+        if (agent != null)
+        {
+            agent.speed = moveSpeed;
+        }
+
+        // ⭐ [추가] 자식 오브젝트에서 렌더러를 찾아 원래 색상을 기억해 둡니다.
+        enemyRenderer = GetComponentInChildren<Renderer>();
+        if (enemyRenderer != null)
+        {
+            originalColor = enemyRenderer.material.color;
+        }
 
         // 플레이어 찾기
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -117,6 +140,11 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
+
+        // ⭐ [추가] 피격 시 기존에 돌던 플래시가 있다면 끄고 새로 시작
+        if (flashCoroutine != null) StopCoroutine(flashCoroutine);
+        flashCoroutine = StartCoroutine(DamageFlashRoutine());
+
         if (currentHealth <= 0)
         {
             Die();
@@ -142,4 +170,21 @@ public class Enemy : MonoBehaviour
             }
         }
     }
+
+    // ⭐⭐⭐ [핵심 추가] 0.1초 동안 빨갛게 물들였다가 되돌리는 코루틴
+    IEnumerator DamageFlashRoutine()
+    {
+        if (enemyRenderer != null)
+        {
+            // 머티리얼 색상을 빨간색으로 변경
+            enemyRenderer.material.color = Color.red;
+
+            // 0.1초 동안 대기 (Time.timeScale의 영향을 받지 않게 Realtime 권장)
+            yield return new WaitForSecondsRealtime(0.1f);
+
+            // 원래 색상으로 복구
+            enemyRenderer.material.color = originalColor;
+        }
+    }
+
 }

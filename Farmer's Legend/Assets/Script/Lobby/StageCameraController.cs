@@ -24,6 +24,13 @@ public class StageCameraController : MonoBehaviour
     // ⭐ [추가] UI 관통 드래그를 방지하기 위한 상태 제어 플래그
     private bool isDragging = false;
 
+    private LobbyManager cachedLobby; // 캐싱용 변수 추가
+
+    void Start()
+    {
+        cachedLobby = FindFirstObjectByType<LobbyManager>();
+    }
+
     void Update()
     {
         // 팝업 UI 창이 하나라도 활성화되어 있다면 드래그 처리를 건너뜁니다.
@@ -111,10 +118,10 @@ public class StageCameraController : MonoBehaviour
             stageTitleText.text = stageNames[currentStageIndex];
         }
 
-        LobbyManager lobby = FindFirstObjectByType<LobbyManager>();
-        if (lobby != null)
+        // Find 명령을 지우고, 스타트 때 찾아둔 변수를 재사용합니다.
+        if (cachedLobby != null)
         {
-            lobby.UpdateThemePanel(currentStageIndex);
+            cachedLobby.UpdateThemePanel(currentStageIndex);
         }
     }
 }
