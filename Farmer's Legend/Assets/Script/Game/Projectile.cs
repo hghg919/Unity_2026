@@ -24,18 +24,26 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Projectile 스크립트의 OnTriggerEnter 내부 수정
+        // 부딪힌 대상이 "Enemy" 태그를 가지고 있다면
         if (other.CompareTag("Enemy"))
         {
-            // 부딪힌 대상에게서 Enemy 스크립트를 가져옴
+            // 1단계: 일반 잡몹 스크립트(Enemy)가 붙어있는지 확인
             Enemy enemy = other.GetComponent<Enemy>();
-
             if (enemy != null)
             {
                 enemy.TakeDamage(1); // 1의 데미지를 줌
+                Destroy(gameObject); // 총알 파괴
+                return; // 함수 종료
             }
 
-            Destroy(gameObject); // 적과 부딪혔으므로 병은 파괴됨
+            // ⭐⭐⭐ 2단계: [보스몹 대응 추가] 보스몹 스크립트(BossEnemy)가 붙어있는지 확인
+            BossEnemy boss = other.GetComponent<BossEnemy>();
+            if (boss != null)
+            {
+                boss.TakeDamage(1); // 보스에게 1의 데미지를 줌!
+                Destroy(gameObject); // 총알 파괴
+                return; // 함수 종료
+            }
         }
         else if (other.CompareTag("Wall"))
         {

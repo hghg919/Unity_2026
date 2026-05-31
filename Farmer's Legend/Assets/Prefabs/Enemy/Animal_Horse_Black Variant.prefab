@@ -114,10 +114,10 @@ PrefabInstance:
       addedObject: {fileID: 250709496994746436}
     - targetCorrespondingSourceObject: {fileID: 139514, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5252129483717757883}
+      addedObject: {fileID: 7629585674456233143}
     - targetCorrespondingSourceObject: {fileID: 139514, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7629585674456233143}
+      addedObject: {fileID: -873962503514018818}
   m_SourcePrefab: {fileID: 100100000, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
 --- !u!1 &2665328346494771103 stripped
 GameObject:
@@ -153,7 +153,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2665328346494771103}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 500
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -168,29 +168,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &5252129483717757883
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2665328346494771103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6964b05c32c8353449a13aacbacb4d3c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  maxHealth: 3
-  moveSpeed: 8
-  enemyType: 0
-  attackRange: 20
-  enemyProjectile: {fileID: 100000, guid: 998a122b19d1dfb4eb03defadb277dcf, type: 3}
-  firePoint: {fileID: 4165091424133715631}
-  attackRate: 1.5
 --- !u!195 &7629585674456233143
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -213,6 +194,24 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &-873962503514018818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2665328346494771103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37412b8e1d9052d4a91179887ab6880b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossEnemy
+  maxHealth: 3
+  moveSpeed: 8
+  chargeSpeed: 18
+  chargeMaxDuration: 0.6
+  prepareDuration: 1
+  stunDuration: 1
 --- !u!4 &2665328346495044271 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}
