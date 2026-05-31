@@ -43,6 +43,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Animal_Fox_02 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 110416, guid: d08ba223a91fb3440afcbed27fafa936, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     - target: {fileID: 439378, guid: d08ba223a91fb3440afcbed27fafa936, type: 3}
       propertyPath: m_LocalPosition.x
       value: -8.2702265

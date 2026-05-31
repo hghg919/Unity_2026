@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Animal_Doe_02 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 131568, guid: 2fdf2b8525a6fa54ba867925b16564e3, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     - target: {fileID: 406776, guid: 2fdf2b8525a6fa54ba867925b16564e3, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.2019
