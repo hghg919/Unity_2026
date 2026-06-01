@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: ce2d7765c7d57eb4ea4ea70afd6cc5bf
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 1
+    sampleRateSetting: 1
+    sampleRateOverride: 44100
+    compressionFormat: 0
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 342720
+  packageName: Epic Soundtracks for Every Genre - free
+  packageVersion: 1.0
+  assetPath: "Assets/Epic Soundtracks for Every Genre - free/RPG Game Music Pack
+    \u2014 Epic Fantasy Adventures & Battles/The Cursed Crypt.wav"
+  uploadId: 813138

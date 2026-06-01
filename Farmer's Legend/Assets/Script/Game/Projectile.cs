@@ -61,31 +61,36 @@ public class Projectile : MonoBehaviour
     }
 
     // 레이저를 쓰지 않는 가장 확실한 직사각형 맵 반사 로직
+    // --- Projectile.cs 내부의 BounceSimple 함수 교체 ---
     void BounceSimple(Collider wallCollider)
     {
         lastBounceTime = Time.time;
 
-        // 현재 투사체가 날아가던 방향 벡터 구하기
+        // 현재 투사체가 날아가던 방향 벡터
         Vector3 currentDir = transform.forward;
 
-        // 부딪힌 투명 벽의 이름을 체크하여 반사 방향을 결정
-        string wallName = wallCollider.name;
+        // 💡 [핵심 개선] 이름 매칭 방식 타파! 
+        // 총알 위치보다 살짝 뒤에서 진행 방향으로 레이저(Ray)를 쏘아 부딪힌 벽의 표면 각도(법선 벡터)를 구합니다.
+        Vector3 rayStart = transform.position - currentDir * 1.0f;
+        Ray ray = new Ray(rayStart, currentDir);
+        RaycastHit hit;
 
-        if (wallName.Contains("North") || wallName.Contains("South"))
+        // 충돌한 콜라이더 표면의 튕겨나가는 정방향(hit.normal)을 획득합니다.
+        if (wallCollider.Raycast(ray, out hit, 5.0f))
         {
-            // 위아래(북/남) 벽에 부딪히면 앞뒤 방향(Z축)을 뒤집음
-            currentDir.z = -currentDir.z;
+            // 유니티 물리 엔진 공식: Vector3.Reflect(입사각, 반사표면방향)
+            currentDir = Vector3.Reflect(currentDir, hit.normal);
         }
-        else if (wallName.Contains("East") || wallName.Contains("West"))
+        else
         {
-            // 좌우(동/서) 벽에 부딪히면 좌우 방향(X축)을 뒤집음
-            currentDir.x = -currentDir.x;
+            // [백업 안전장치] 레이캐스트가 안 잡힐 경우 예전 이름 기반 코드로 작동
+            string wallName = wallCollider.name;
+            if (wallName.Contains("North") || wallName.Contains("South")) currentDir.z = -currentDir.z;
+            else if (wallName.Contains("East") || wallName.Contains("West")) currentDir.x = -currentDir.x;
         }
 
-        // 높이 변화 방지
+        // 높이 변화 고정 및 회전값 재연산
         currentDir.y = 0;
-
-        // 투사체의 방향을 새로 계산된 반사 방향으로 돌려줌
         transform.rotation = Quaternion.LookRotation(currentDir);
 
         currentBounces++;

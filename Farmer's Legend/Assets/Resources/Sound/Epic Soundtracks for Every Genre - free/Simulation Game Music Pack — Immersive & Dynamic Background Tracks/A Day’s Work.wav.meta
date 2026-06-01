@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: dbc9fe760f978834b842952d032acf33
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 1
+    sampleRateOverride: 44100
+    compressionFormat: 0
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 342720
+  packageName: Epic Soundtracks for Every Genre - free
+  packageVersion: 1.0
+  assetPath: "Assets/Epic Soundtracks for Every Genre - free/Simulation Game Music
+    Pack \u2014 Immersive & Dynamic Background Tracks/A Day\u2019s Work.wav"
+  uploadId: 813138

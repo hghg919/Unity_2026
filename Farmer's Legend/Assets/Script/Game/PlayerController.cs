@@ -23,33 +23,33 @@ public class PlayerController : MonoBehaviour
     private bool isDead = false;
 
     [Header("UI 연동")]
-    public Image[] hpImages; // 인스펙터에서 구급상자 이미지 3개 등록
+    public Image[] hpImages; // 인스펙터에서 구급상자 이미지 최대치(5개 권장) 등록
 
     [Header("타격감 연출 (URP 무결점 업그레이드)")]
-    // 뼈대 속 모자까지 포함한 모든 세부 머티리얼과 원본 색상을 동적으로 추적합니다.
     private List<Material> allMaterials = new List<Material>();
     private List<Color> originalColors = new List<Color>();
     private Coroutine flashCoroutine;
+
+    // 🏅 [보상 데이터 관리 시스템]
+    private int extraBounces = 0;  // BounceUp 누적 스택
+    private int multiShotLevel = 0; // ⭐ [추가] 다중 발사(MultiShot) 누적 레벨 (0~2)
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         currentHealth = maxHealth; // 시작할 때 체력 풀피로 설정
 
-        // ⭐⭐⭐ [구조 무력화 세팅] 뼈대(Hips_int) 속에 숨은 모자까지 Renderer를 전부 전수조사합니다.
+        // 뼈대 속 모자까지 Renderer 전수조사
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)
         {
             if (r != null)
             {
-                // r.materials를 호출하면 해당 부위가 가진 1개 또는 여러 개의 머티리얼 인스턴스를 모두 가져옵니다.
                 foreach (Material mat in r.materials)
                 {
                     if (mat != null)
                     {
                         allMaterials.Add(mat);
-
-                        // URP 쉐이더 특성을 고려하여 _BaseColor가 있으면 그것을, 없으면 기본 color를 원본으로 기억합니다.
                         Color origColor = mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor") : mat.color;
                         originalColors.Add(origColor);
                     }
@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 게임 시작 시 체력 UI를 풀피 상태로 초기화합니다.
+        // 게임 시작 시 체력 UI 초기화
         UpdateHpUI();
     }
 
@@ -72,10 +72,9 @@ public class PlayerController : MonoBehaviour
         Vector3 moveInput = new Vector3(moveX, 0f, moveZ).normalized;
         moveVelocity = moveInput * moveSpeed;
 
-        // 이동 중인지 체크
         isMoving = moveInput.magnitude > 0.1f;
 
-        // 2. 궁수의 전설 핵심 로직: 멈춰있을 때만 공격 트리거
+        // 2. 멈춰있을 때만 공격 트리거
         if (!isMoving && Time.time >= nextAttackTime)
         {
             AttackClosestEnemy();
@@ -85,13 +84,10 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         if (isDead) return;
-
-        // 물리 이동 및 회전
         rb.linearVelocity = new Vector3(moveVelocity.x, rb.linearVelocity.y, moveVelocity.z);
 
         if (isMoving)
         {
-            // 이동 방향 바라보기
             Quaternion newRotation = Quaternion.LookRotation(moveVelocity);
             rb.MoveRotation(newRotation);
         }
@@ -107,8 +103,7 @@ public class PlayerController : MonoBehaviour
 
         foreach (GameObject enemy in enemies)
         {
-            if (enemy == null) continue; // 안전장치
-
+            if (enemy == null) continue;
             float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
             if (distanceToEnemy < shortestDistance)
             {
@@ -117,41 +112,58 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 적이 있다면 조준하고 발사
         if (closestEnemy != null)
         {
             Vector3 targetDir = (closestEnemy.transform.position - transform.position).normalized;
-            targetDir.y = 0; // 높이 고정
+            targetDir.y = 0;
 
-            // ⭐⭐⭐ [오타 수정] lookDir => 를 지우고 targetDir만 깔끔하게 넣어줍니다.
             transform.rotation = Quaternion.LookRotation(targetDir);
 
-            // 투사체 생성
-            Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(targetDir));
+            // ⭐⭐⭐ [다중 발사 알고리즘 코어 적용]
+            // 기본 상태 (Level 0): 전방 발사 1개
+            SpawnProjectile(targetDir);
 
-            // 다음 공격 쿨타임 지정
+            if (multiShotLevel == 1)
+            {
+                // 첫 번째 획득 (Level 1): 전방 1개 + 우측 대각선 1개 (총 2발)
+                Vector3 rightDiag = Quaternion.Euler(0, 25f, 0) * targetDir; // Y축 기준 우측으로 25도 회전
+                SpawnProjectile(rightDiag);
+            }
+            else if (multiShotLevel >= 2)
+            {
+                // 두 번째 획득 (Level 2): 전방 1개 + 우측 대각선 1개 + 좌측 대각선 1개 (총 3발)
+                Vector3 rightDiag = Quaternion.Euler(0, 25f, 0) * targetDir;
+                Vector3 leftDiag = Quaternion.Euler(0, -25f, 0) * targetDir; // Y축 기준 좌측으로 25도 회전
+                SpawnProjectile(rightDiag);
+                SpawnProjectile(leftDiag);
+            }
+
             nextAttackTime = Time.time + attackRate;
+        }
+    }
+
+    // 투사체 생성 및 반사 횟수 주입을 처리하는 안전 공용 함수
+    void SpawnProjectile(Vector3 direction)
+    {
+        GameObject projObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
+        Projectile projScript = projObj.GetComponent<Projectile>();
+        if (projScript != null)
+        {
+            projScript.maxBounces += extraBounces; // 기존 먹어둔 BounceUp 스택 실시간 가산
         }
     }
 
     public void TakeDamage(int damage)
     {
         if (isDead) return;
-
         currentHealth -= damage;
-        Debug.Log("💥 플레이어 피격! 남은 체력: " + currentHealth);
 
-        // 피격 시 붉은색 플래시 코루틴을 켭니다.
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(PlayerFlashRoutine());
 
-        // 피격 시 체력 UI를 실시간으로 갱신합니다.
         UpdateHpUI();
 
-        if (currentHealth <= 0)
-        {
-            PlayerDie();
-        }
+        if (currentHealth <= 0) PlayerDie();
     }
 
     void PlayerDie()
@@ -159,68 +171,53 @@ public class PlayerController : MonoBehaviour
         isDead = true;
         rb.linearVelocity = Vector3.zero;
         moveVelocity = Vector3.zero;
-        Debug.Log("💀 게임 오버! 플레이어가 사망했습니다.");
-
-        if (InGameStageManager.Instance != null)
-        {
-            InGameStageManager.Instance.PlayerDied();
-        }
+        if (InGameStageManager.Instance != null) InGameStageManager.Instance.PlayerDied();
     }
 
-    // 현재 체력 수치에 맞춰 구급상자 이미지를 켜고 끄는 함수
     void UpdateHpUI()
     {
         if (hpImages == null || hpImages.Length == 0) return;
 
         for (int i = 0; i < hpImages.Length; i++)
-            hpImages[i].gameObject.SetActive(true);
-
-        for (int i = 0; i < hpImages.Length; i++)
         {
-            if (i < currentHealth)
+            if (hpImages[i] == null) continue;
+
+            if (i < maxHealth)
             {
-                hpImages[i].color = Color.white;
+                hpImages[i].gameObject.SetActive(true);
+                if (i < currentHealth) hpImages[i].color = Color.white;
+                else hpImages[i].color = new Color(0.25f, 0.25f, 0.25f, 0.3f);
             }
             else
             {
-                hpImages[i].color = new Color(0.25f, 0.25f, 0.25f, 0.3f);
+                hpImages[i].gameObject.SetActive(false);
             }
         }
     }
 
-    // ⭐⭐⭐ [핵심 수정] 수집된 모든 하위 머티리얼 슬롯의 URP 프로퍼티를 동시에 변환하는 코루틴
     IEnumerator PlayerFlashRoutine()
     {
         Color damageColor = new Color(1f, 0.3f, 0.3f, 1f);
-
-        // 1단계: 수집된 모든 부위의 모든 머티리얼을 타격 컬러로 변경 (URP 대응 포함)
         for (int i = 0; i < allMaterials.Count; i++)
         {
             if (allMaterials[i] != null)
             {
-                if (allMaterials[i].HasProperty("_BaseColor"))
-                    allMaterials[i].SetColor("_BaseColor", damageColor);
-                else
-                    allMaterials[i].color = damageColor;
+                if (allMaterials[i].HasProperty("_BaseColor")) allMaterials[i].SetColor("_BaseColor", damageColor);
+                else allMaterials[i].color = damageColor;
             }
         }
-
-        // 0.1초 대기
         yield return new WaitForSecondsRealtime(0.1f);
-
-        // 2단계: 수집된 모든 머티리얼을 각자의 원래 색상으로 안전 복구
         for (int i = 0; i < allMaterials.Count; i++)
         {
             if (allMaterials[i] != null)
             {
-                if (allMaterials[i].HasProperty("_BaseColor"))
-                    allMaterials[i].SetColor("_BaseColor", originalColors[i]);
-                else
-                    allMaterials[i].color = originalColors[i];
+                if (allMaterials[i].HasProperty("_BaseColor")) allMaterials[i].SetColor("_BaseColor", originalColors[i]);
+                else allMaterials[i].color = originalColors[i];
             }
         }
     }
 
+    // ⭐⭐⭐ [핵심 수정] 룰렛 카드 보상 적용 함수 내부 개조
     public void ApplyReward(string rewardType)
     {
         switch (rewardType)
@@ -228,12 +225,44 @@ public class PlayerController : MonoBehaviour
             case "FireRateUp":
                 attackRate = Mathf.Max(0.1f, attackRate - 0.05f);
                 break;
+
             case "MoveSpeedUp":
                 moveSpeed += 1.0f;
                 break;
-            case "Heal":
-                currentHealth = Mathf.Min(maxHealth, currentHealth + 1);
-                UpdateHpUI();
+
+            case "BounceUp":
+                extraBounces++;
+                break;
+
+            // ⭐ [기획 병합] 스마트 힐 시스템
+            case "HealOrMaxHP":
+                if (currentHealth < maxHealth)
+                {
+                    // 1) 피가 깎여있다면 1칸 단순 치유
+                    currentHealth = Mathf.Min(maxHealth, currentHealth + 1);
+                    Debug.Log($"📚 [스마트 보상] 체력 1 회복 완료! 현재 체력: {currentHealth}/{maxHealth}");
+                }
+                else
+                {
+                    // 2) 피가 만땅이라면 하트 슬롯 최대치 확장 (+ 보너스로 한 칸 채워줌)
+                    if (maxHealth < hpImages.Length)
+                    {
+                        maxHealth++;
+                        currentHealth++;
+                        Debug.Log($"❤️ [스마트 보상] 체력이 가득 차 있어 최대 체력 확장! 현재 최대 체력: {maxHealth}칸");
+                    }
+                    else
+                    {
+                        Debug.Log("❤️ 이미 하트 소지 상한선에 도달하여 확장이 불가능합니다.");
+                    }
+                }
+                UpdateHpUI(); // 변경된 하트 상태 즉시 갱신
+                break;
+
+            // ⭐ [기획 추가] 다중 발사 시스템
+            case "MultiShot":
+                multiShotLevel = Mathf.Min(2, multiShotLevel + 1); // 최대 레벨 2까지 제한 중첩
+                Debug.Log($"🏹 [다중 발사] 업그레이드 완료! 현재 발사 레벨: {multiShotLevel} (추가 화살 발사)");
                 break;
         }
     }

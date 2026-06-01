@@ -31,6 +31,12 @@ public class PauseMenuController : MonoBehaviour
         {
             pausePanel.SetActive(true);
             Time.timeScale = 0f; // 게임 시간을 멈춤
+
+            // ⭐⭐⭐ [추가] 일시정지 창이 성공적으로 켜졌을 때 BGM을 먹먹한 물속 소리로 변환!
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.SetPauseBGMState(true);
+            }
         }
     }
 
@@ -41,6 +47,12 @@ public class PauseMenuController : MonoBehaviour
         {
             pausePanel.SetActive(false);
             Time.timeScale = 1f; // 게임 시간을 다시 흐르게 함
+
+            // ⭐⭐⭐ [추가] 게임으로 복귀했으니 BGM 필터를 끄고 다시 원래대로 선명하게 복구!
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.SetPauseBGMState(false);
+            }
         }
     }
 

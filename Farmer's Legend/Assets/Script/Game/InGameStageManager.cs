@@ -136,8 +136,9 @@ public class InGameStageManager : MonoBehaviour
             while (timer < individualShuffleDuration)
             {
                 int randomVisualIndex = Random.Range(0, allRewards.Length);
+                // ⭕ 아래와 같이 수정 (글자 \n을 진짜 줄바꿈으로 변경)
                 slotImages[i].sprite = allRewards[randomVisualIndex].rewardIcon;
-                slotTexts[i].text = allRewards[randomVisualIndex].rewardName;
+                slotTexts[i].text = allRewards[randomVisualIndex].rewardName.Replace("\\n", "\n");
 
                 timer += shuffleSpeed;
                 yield return new WaitForSecondsRealtime(shuffleSpeed);
@@ -147,7 +148,7 @@ public class InGameStageManager : MonoBehaviour
             RewardData selectedReward = allRewards[finalIndex];
 
             slotImages[i].sprite = selectedReward.rewardIcon;
-            slotTexts[i].text = selectedReward.rewardName;
+            slotTexts[i].text = selectedReward.rewardName.Replace("\\n", "\n");
 
             yield return StartCoroutine(PunchScaleRoutine(slotImages[i].transform, punchScale, punchDuration));
             yield return new WaitForSecondsRealtime(0.1f);
@@ -228,6 +229,13 @@ public class InGameStageManager : MonoBehaviour
     // InGameStageManager.cs 내부의 ShowEndGamePanel 함수를 이 코드로 통째로 바꾸시면 됩니다.
     IEnumerator ShowEndGamePanel(bool isWin)
     {
+        // ⭐⭐⭐ [기획 연동 핵심 추가] 
+        // 결과창 판넬이 켜지는 0.001초 타이밍에 StageManager에게 결과 브금 재생 명령 전달!
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlayResultBGM(isWin);
+        }
+
         int mainStage = StageManager.Instance != null ? StageManager.Instance.SelectedMainStage : localMainStage;
         int currentSub = StageManager.Instance != null ? StageManager.Instance.CurrentSubStage : localSubStage;
 

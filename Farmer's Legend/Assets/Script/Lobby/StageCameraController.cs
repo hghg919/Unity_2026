@@ -118,10 +118,18 @@ public class StageCameraController : MonoBehaviour
             stageTitleText.text = stageNames[currentStageIndex];
         }
 
-        // Find 명령을 지우고, 스타트 때 찾아둔 변수를 재사용합니다.
-        if (cachedLobby != null)
+        LobbyManager lobby = FindFirstObjectByType<LobbyManager>();
+        if (lobby != null)
         {
-            cachedLobby.UpdateThemePanel(currentStageIndex);
+            lobby.UpdateThemePanel(currentStageIndex);
+        }
+
+        // ⭐⭐⭐ [기획 연동 핵심 추가]
+        // 화면을 드래그해서 현재 보고 있는 테마 인덱스(0:농장, 1:강, 2:바다)가 바뀌면 브금도 실시간 스위칭!
+        // (StageManager 내부에 동일 음원 중복 재생 방지 처리가 되어 있어서 매 프레임 안전하게 호출 가능합니다.)
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlayLobbyThemeBGM(currentStageIndex);
         }
     }
 }

@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 99bf451718c9a6f4d97e4b4ebc3a8b9f
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 1
+    sampleRateOverride: 44100
+    compressionFormat: 0
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 342720
+  packageName: Epic Soundtracks for Every Genre - free
+  packageVersion: 1.0
+  assetPath: "Assets/Epic Soundtracks for Every Genre - free/Action Game Music Pack
+    \u2014 Intense & Adrenaline-Pumping Tracks/Blazing Blades.wav"
+  uploadId: 813138
