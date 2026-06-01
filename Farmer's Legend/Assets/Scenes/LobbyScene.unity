@@ -47882,7 +47882,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4d314d802e442f6468052e30b0c13d91, type: 3}
   - {fileID: 8300000, guid: 458dd8822518c4f37bc3edba9b6c57d9, type: 3}
   victoryBGM: {fileID: 8300000, guid: 9533ded2d642a1f42bc8787d2346f5ed, type: 3}
-  defeatBGM: {fileID: 8300000, guid: 3fc26869a512b4e5187c9be6310ad8c2, type: 3}
+  defeatBGM: {fileID: 8300000, guid: eb7f10105313640a18ce7926041a4d76, type: 3}
 --- !u!1001 &1881110494
 PrefabInstance:
   m_ObjectHideFlags: 0
