@@ -47871,18 +47871,18 @@ MonoBehaviour:
   UnlockedMainStage: 1
   SelectedMainStage: 1
   CurrentSubStage: 1
-  titleBGM: {fileID: 0}
+  titleBGM: {fileID: 8300000, guid: c9d655f46a3a20c47a77f93981d847d4, type: 3}
   lobbyThemeBGMs:
   - {fileID: 8300000, guid: 600432fbe88147c4194ff7241c24a230, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 5b1ed8fbe89154eaf96723b6e5f0aad3, type: 3}
+  - {fileID: 8300000, guid: d44a07c7c514b2f40af9d9f896065331, type: 3}
   gameStageBGMs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  victoryBGM: {fileID: 0}
-  defeatBGM: {fileID: 0}
+  - {fileID: 8300000, guid: bea93a38b71b64b598109b3a3b1a0048, type: 3}
+  - {fileID: 8300000, guid: 33b6f54ba1992a541a65333ada6586aa, type: 3}
+  - {fileID: 8300000, guid: 4d314d802e442f6468052e30b0c13d91, type: 3}
+  - {fileID: 8300000, guid: 458dd8822518c4f37bc3edba9b6c57d9, type: 3}
+  victoryBGM: {fileID: 8300000, guid: 9533ded2d642a1f42bc8787d2346f5ed, type: 3}
+  defeatBGM: {fileID: 8300000, guid: 3fc26869a512b4e5187c9be6310ad8c2, type: 3}
 --- !u!1001 &1881110494
 PrefabInstance:
   m_ObjectHideFlags: 0

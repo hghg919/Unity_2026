@@ -23,6 +23,13 @@ public class StageManager : MonoBehaviour
     private AudioLowPassFilter lowPassFilter;
     private float originalVolume = 1.0f;
 
+    // --- StageManager.cs 내부에 아래 Start 함수를 추가해 줍니다 ---
+    private void Start()
+    {
+        // 짚고 넘어가기: 최초 게임 구동 시 sceneLoaded 이벤트를 타이밍상 놓치기 때문에,
+        // 현재 열려있는 씬(TitleScene)을 강제로 한 번 체크하여 브금을 수동 재생합니다.
+        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+    }
     private void Awake()
     {
         if (Instance == null)
