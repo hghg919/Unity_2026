@@ -28,10 +28,13 @@ public class Enemy : MonoBehaviour
     private NavMeshAgent agent;
     private Transform playerTransform;
 
-    [Header("타격감 연출")]
+    [Header("타격감 및 이펙트 연출")]
     private Renderer enemyRenderer; // 적의 메시 렌더러 컴포넌트
     private Color originalColor;    // 원래 색상 저장용
     private Coroutine flashCoroutine;
+
+    // ⭐⭐⭐ [이펙트 추가] 유저님이 직접 구하신 몬스터 소멸 이펙트 프리팹 슬롯
+    public GameObject deathEffectPrefab;
 
     void Start()
     {
@@ -141,8 +144,7 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= damage;
 
-        // ⭐⭐⭐ [효과음 추가 - 요소 3번: EnemyHit]
-        // 화살 투사체가 몬스터 몸에 꽂혀 피격 데미지가 연산되는 순간 찰진 손맛 소리 가동!
+        // 효과음 추가 - 요소 3번: EnemyHit
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
@@ -160,8 +162,14 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
-        // ⭐⭐⭐ [효과음 추가 - 요소 4번: EnemyDeath]
-        // 몬스터가 완전히 숨을 거두고 파괴(Destroy)되기 직전 타이밍에 사망 뿅 소리 출력!
+        // ⭐⭐⭐ [시각 효과 추가] 
+        // 몬스터가 완전히 월드에서 삭제(Destroy)되기 직전, 그 자리에 소멸 이펙트 파티클을 쾅 생성합니다!
+        if (deathEffectPrefab != null)
+        {
+            Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+        }
+
+        // 효과음 추가 - 요소 4번: EnemyDeath
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
@@ -185,7 +193,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // ⭐⭐⭐ [핵심 추가] 0.1초 동안 빨갛게 물들였다가 되돌리는 코루틴
+    // 0.1초 동안 빨갛게 물들였다가 되돌리는 코루틴
     IEnumerator DamageFlashRoutine()
     {
         if (enemyRenderer != null)

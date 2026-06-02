@@ -101,6 +101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
   speed: 15
   maxBounces: 0
+  hitEffectPrefab: {fileID: 744590452293094072, guid: ee7dc9f221c311643984352a808fe4e4, type: 3}
 --- !u!65 &-6616313048875509302
 BoxCollider:
   m_ObjectHideFlags: 0

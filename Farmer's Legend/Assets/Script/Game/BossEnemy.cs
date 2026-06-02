@@ -23,10 +23,16 @@ public class BossEnemy : MonoBehaviour
     private Rigidbody rb;
     private Transform playerTransform;
 
-    [Header("타격감 및 경고 연출")]
+    [Header("타격감, 경고 및 이펙트 연출")]
     private Renderer[] bossRenderers;
     private Color[] originalColors;
     private Coroutine flashCoroutine;
+
+    // [이펙트 추가] 유저님이 직접 구하신 보스 전용 소멸 이펙트 프리팹 슬롯
+    public GameObject deathEffectPrefab;
+
+    // ⭐⭐⭐ [이펙트 추가] 보스가 초고속 돌진할 때 발밑에서 부스스 일어날 먼지 이펙트 프리팹 슬롯
+    public GameObject chargeDustPrefab;
 
     void Start()
     {
@@ -58,7 +64,7 @@ public class BossEnemy : MonoBehaviour
         StartCoroutine(BossPatternLoop());
     }
 
-    // ⭐⭐⭐ [핵심 인공지능] 코루틴을 이용한 상태 기반 패턴 제어 시스템
+    // 코루틴을 이용한 상태 기반 패턴 제어 시스템
     IEnumerator BossPatternLoop()
     {
         while (currentState != BossState.Stunned || currentHealth > 0)
@@ -91,20 +97,43 @@ public class BossEnemy : MonoBehaviour
             currentState = BossState.Charging;
             Vector3 chargeDirection = transform.forward; // 기 모으기가 끝난 시점의 정면 방향
 
-            // ⭐⭐⭐ [효과음 추가 - 요소 5번: BossCharge]
-            // 기 모으기 경고가 끝나고 물리적으로 몸이 튀어나가는 이 기막힌 타이밍에 보스 돌진음 가동!
+            // 효과음 추가 - 요소 5번: BossCharge
             if (StageManager.Instance != null)
             {
                 StageManager.Instance.PlaySFX(StageManager.SFXType.BossCharge);
+            }
+
+            // ⭐⭐⭐ [돌진 이펙트 생성]
+            // 돌진이 본격적으로 시작되는 루프 진입 순간, 보스의 발밑 자식으로 먼지 이펙트 프리팹을 소환합니다.
+            GameObject dustObj = null;
+            if (chargeDustPrefab != null)
+            {
+                dustObj = Instantiate(chargeDustPrefab, transform.position, Quaternion.identity, transform);
             }
 
             float chargeTimer = 0f;
             while (chargeTimer < chargeMaxDuration && currentState == BossState.Charging)
             {
                 chargeTimer += Time.deltaTime;
-                // 유니티 6 물리 엔진에 맞춰 직선 속도 강제 주입
                 rb.linearVelocity = chargeDirection * chargeSpeed;
                 yield return null;
+            }
+
+            // ⭐⭐⭐ [돌진 이펙트 해제 및 자연스러운 페이드아웃]
+            // 돌진이 끝났거나(시간 초과), 벽에 부딪히거나 플레이어에 들이받아 루프를 탈출한 직후 무조건 실행됩니다.
+            if (dustObj != null)
+            {
+                ParticleSystem ps = dustObj.GetComponent<ParticleSystem>();
+                if (ps != null)
+                {
+                    dustObj.transform.SetParent(null); // 💡 핵심: 보스 몸체에서 먼지 오브젝트를 떼어내어, 보스가 기절해도 생성된 먼지는 맵에 이쁘게 남깁니다.
+                    ps.Stop();                         // 새로운 먼지 입자 생성을 정지하고 기존 먼지가 자연스레 흐려지도록 유도합니다.
+                    Destroy(dustObj, 2.0f);            // 먼지가 완전히 사라질 2초 뒤 메모리 안전 파괴
+                }
+                else
+                {
+                    Destroy(dustObj);
+                }
             }
 
             // 4단계: 돌진이 끝났거나 무언가에 부딪힌 후 '그로기 스턴' (1초 휴식)
@@ -128,17 +157,15 @@ public class BossEnemy : MonoBehaviour
         }
     }
 
-    // ⭐⭐⭐ [핵심 충돌 판정] 돌진 중 장애물(Wall)에 박으면 즉시 멈추는 물리 처리
+    // 돌진 중 장애물(Wall)에 박으면 즉시 멈추는 물리 처리
     void OnCollisionEnter(Collision collision)
     {
-        // 1. 돌진 중에 "Wall" 태그를 가진 내부 벽/외곽 벽에 부딪혔다면?
         if (currentState == BossState.Charging && collision.gameObject.CompareTag("Wall"))
         {
             Debug.Log("💥 보스가 벽에 정면 충돌하여 돌진을 멈춥니다!");
-            currentState = BossState.Stunned; // 루프 안의 돌진 while문을 파괴하고 스턴 단계로 강제 전환
+            currentState = BossState.Stunned;
         }
 
-        // 2. 플레이어와 부딪혔을 때 데미지 주기
         if (collision.gameObject.CompareTag("Player"))
         {
             PlayerController player = collision.gameObject.GetComponent<PlayerController>();
@@ -147,7 +174,6 @@ public class BossEnemy : MonoBehaviour
                 player.TakeDamage(1);
             }
 
-            // 플레이어 받쳐 버린 후에도 충격으로 돌진이 끊기게 설계
             if (currentState == BossState.Charging)
             {
                 currentState = BossState.Stunned;
@@ -159,8 +185,6 @@ public class BossEnemy : MonoBehaviour
     {
         currentHealth -= damage;
 
-        // ⭐⭐⭐ [효과음 추가 - 요소 3번: EnemyHit]
-        // 보스가 플레이어의 반사 화살을 맞았을 때도 동일하게 찰진 피격음을 들려줍니다.
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
@@ -179,17 +203,25 @@ public class BossEnemy : MonoBehaviour
     {
         StopAllCoroutines();
 
-        // ⭐⭐⭐ [효과음 추가 - 요소 4번: EnemyDeath]
-        // 최종 스테이지 보스가 격파되어 처단되는 통쾌함을 사망음으로 마무리합니다.
-        if (StageManager.Instance != null)
+        // [시각 효과 추가] 
+        // 최종 보스 몬스터가 쓰러져 월드에서 삭제(Destroy)되기 직전, 거대한 소멸 이펙트 파티클을 쾅 생성합니다!
+        if (deathEffectPrefab != null)
         {
-            StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
+            Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
         }
+
+        if (StageManager.Instance != null)
+            PreloadSFXIfNecessary(); // 효과음 재생 코드 안정성 보강
 
         if (InGameStageManager.Instance != null)
             InGameStageManager.Instance.EnemyDied(this.gameObject);
 
         Destroy(gameObject);
+    }
+
+    private void PreloadSFXIfNecessary()
+    {
+        if (StageManager.Instance != null) StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
     }
 
     // 머티리얼 제어 함수들 (URP 무결점 버전)

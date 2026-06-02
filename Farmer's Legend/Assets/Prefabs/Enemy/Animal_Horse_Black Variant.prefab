@@ -212,6 +212,8 @@ MonoBehaviour:
   chargeMaxDuration: 0.6
   prepareDuration: 1
   stunDuration: 1
+  deathEffectPrefab: {fileID: 104829970813648393, guid: e18169b11e4914144aafc73ae4aad9f4, type: 3}
+  chargeDustPrefab: {fileID: 3487780567774985514, guid: 9cd3492bfe52a1e44b0054fbd7fda0a4, type: 3}
 --- !u!4 &2665328346495044271 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 423370, guid: 03e4c5418c1e9164bb1955135d815833, type: 3}

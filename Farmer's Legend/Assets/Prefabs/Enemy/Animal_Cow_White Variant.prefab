@@ -145,6 +145,7 @@ MonoBehaviour:
   enemyProjectile: {fileID: 0}
   firePoint: {fileID: 0}
   attackRate: 1.5
+  deathEffectPrefab: {fileID: 104829970813648393, guid: e18169b11e4914144aafc73ae4aad9f4, type: 3}
 --- !u!195 &5032673979831048597
 NavMeshAgent:
   m_ObjectHideFlags: 0
