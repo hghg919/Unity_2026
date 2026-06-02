@@ -141,7 +141,14 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= damage;
 
-        // ⭐ [추가] 피격 시 기존에 돌던 플래시가 있다면 끄고 새로 시작
+        // ⭐⭐⭐ [효과음 추가 - 요소 3번: EnemyHit]
+        // 화살 투사체가 몬스터 몸에 꽂혀 피격 데미지가 연산되는 순간 찰진 손맛 소리 가동!
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
+        }
+
+        // 피격 시 기존에 돌던 플래시가 있다면 끄고 새로 시작
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(DamageFlashRoutine());
 
@@ -153,6 +160,13 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
+        // ⭐⭐⭐ [효과음 추가 - 요소 4번: EnemyDeath]
+        // 몬스터가 완전히 숨을 거두고 파괴(Destroy)되기 직전 타이밍에 사망 뿅 소리 출력!
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
+        }
+
         if (InGameStageManager.Instance != null)
             InGameStageManager.Instance.EnemyDied(this.gameObject);
 
@@ -186,5 +200,4 @@ public class Enemy : MonoBehaviour
             enemyRenderer.material.color = originalColor;
         }
     }
-
 }

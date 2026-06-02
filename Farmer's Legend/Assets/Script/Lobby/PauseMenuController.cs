@@ -29,6 +29,12 @@ public class PauseMenuController : MonoBehaviour
 
         if (pausePanel != null)
         {
+            // ⭐ 효과음 추가: 일시정지 창 열기 버튼음 (시간이 멈추기 전에 재생해야 소리가 정상 출력됩니다.)
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+            }
+
             pausePanel.SetActive(true);
             Time.timeScale = 0f; // 게임 시간을 멈춤
 
@@ -45,6 +51,13 @@ public class PauseMenuController : MonoBehaviour
     {
         if (pausePanel != null)
         {
+            // ⭐ 효과음 추가: 일시정지 창 닫기 버튼음 (닫는 느낌을 위해 피치를 0.8f로 낮춤)
+            // 💡 팁: Time.timeScale이 0이어도 PlayOneShot 효과음은 unscaled 상태로 정상 작동합니다.
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick, 0.8f);
+            }
+
             pausePanel.SetActive(false);
             Time.timeScale = 1f; // 게임 시간을 다시 흐르게 함
 
@@ -59,6 +72,12 @@ public class PauseMenuController : MonoBehaviour
     // 3. 타이틀 씬으로 이동 (Title 버튼에 연결)
     public void GoToTitle()
     {
+        // ⭐ 효과음 추가: 타이틀 이동 버튼 클릭음
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         Time.timeScale = 1f; // 이동 전 시간 초기화는 필수!
         SceneManager.LoadScene("TitleScene");
     }
@@ -66,6 +85,12 @@ public class PauseMenuController : MonoBehaviour
     // ⭐ [추가] 로비 씬으로 이동 (게임 도중 나갈 때 사용)
     public void GoToLobby()
     {
+        // ⭐ 효과음 추가: 로비 이동 버튼 클릭음
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         Time.timeScale = 1f; // 시간 초기화
         if (StageManager.Instance != null)
         {
@@ -77,6 +102,12 @@ public class PauseMenuController : MonoBehaviour
     // 4. 게임 종료 (Quit 버튼에 연결)
     public void QuitGame()
     {
+        // ⭐ 효과음 추가: 게임 종료 버튼 클릭음
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         Debug.Log("게임 종료!");
 
 #if UNITY_EDITOR

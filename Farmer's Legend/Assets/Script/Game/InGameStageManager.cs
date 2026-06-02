@@ -136,9 +136,15 @@ public class InGameStageManager : MonoBehaviour
             while (timer < individualShuffleDuration)
             {
                 int randomVisualIndex = Random.Range(0, allRewards.Length);
-                // ⭕ 아래와 같이 수정 (글자 \n을 진짜 줄바꿈으로 변경)
                 slotImages[i].sprite = allRewards[randomVisualIndex].rewardIcon;
                 slotTexts[i].text = allRewards[randomVisualIndex].rewardName.Replace("\\n", "\n");
+
+                // ⭐⭐⭐ [효과음 추가 - 요소 7번: RouletteTick]
+                // 룰렛 가독 셔플이 일어날 때마다(shuffleSpeed 주기마다) 틱! 틱! 틱! 소리를 겹쳐서 시원하게 터트립니다.
+                if (StageManager.Instance != null)
+                {
+                    StageManager.Instance.PlaySFX(StageManager.SFXType.RouletteTick);
+                }
 
                 timer += shuffleSpeed;
                 yield return new WaitForSecondsRealtime(shuffleSpeed);
@@ -194,6 +200,13 @@ public class InGameStageManager : MonoBehaviour
 
     void SelectReward(string rewardType)
     {
+        // ⭐⭐⭐ [효과음 추가 - 요소 6번: UIClick]
+        // 기획안대로 유저가 최종 보상 카드를 마우스로 쾅 클릭해 확정 지을 때는 일반 버튼 클릭음(딸깍!)이 터집니다.
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -226,11 +239,8 @@ public class InGameStageManager : MonoBehaviour
         SpawnNextWave();
     }
 
-    // InGameStageManager.cs 내부의 ShowEndGamePanel 함수를 이 코드로 통째로 바꾸시면 됩니다.
     IEnumerator ShowEndGamePanel(bool isWin)
     {
-        // ⭐⭐⭐ [기획 연동 핵심 추가] 
-        // 결과창 판넬이 켜지는 0.001초 타이밍에 StageManager에게 결과 브금 재생 명령 전달!
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlayResultBGM(isWin);
@@ -244,7 +254,6 @@ public class InGameStageManager : MonoBehaviour
             StageManager.Instance.ClearSubStage(mainStage, 3);
         }
 
-        // 1. [기존 구현] 결과창 서브 스테이지 텍스트 자동 치환 (1-1, 1-2, 1-3 등으로 글자 변경)
         if (resultSubStageTexts != null)
         {
             for (int i = 0; i < resultSubStageTexts.Length; i++)
@@ -271,7 +280,6 @@ public class InGameStageManager : MonoBehaviour
             replayButtonText.text = isWin ? "RePlay" : "ReStart";
         }
 
-        // 2. 일단 모든 메달 아이콘을 기본 회색 상태로 초기화합니다.
         for (int i = 0; i < resultSubStageIcons.Length; i++)
         {
             if (resultSubStageIcons[i] != null)
@@ -282,12 +290,10 @@ public class InGameStageManager : MonoBehaviour
         }
         yield return new WaitForSecondsRealtime(0.2f);
 
-        // ⭐⭐⭐ [해결책 1 핵심 적용] 하드디스크 세이브 데이터에서 기존 최고 클리어 기록을 조회합니다.
         int maxClearedSub = StageManager.Instance != null ? StageManager.Instance.GetMaxClearedSubStage(mainStage) : 0;
 
         if (isWin)
         {
-            // 스테이지를 이겼을 때는 순차적으로 커지면서 전부 불이 들어오는 연출을 실행합니다.
             for (int i = 0; i < resultSubStageIcons.Length; i++)
             {
                 if (resultSubStageIcons[i] == null) continue;
@@ -298,8 +304,6 @@ public class InGameStageManager : MonoBehaviour
         }
         else
         {
-            // ⭐ [수정] 플레이어가 죽었을 때: 
-            // '기존 최고 기록(maxClearedSub)' 이하이거나, '이번 판에 깨고 넘어왔던 방(roomNum < currentSub)'이라면 불을 켜둡니다!
             for (int i = 0; i < resultSubStageIcons.Length; i++)
             {
                 int roomNum = i + 1;
@@ -307,17 +311,16 @@ public class InGameStageManager : MonoBehaviour
 
                 if (roomNum <= maxClearedSub || roomNum < currentSub)
                 {
-                    resultSubStageIcons[i].color = Color.white; // 해금 상태는 하얀색 원래 아이콘
+                    resultSubStageIcons[i].color = Color.white;
                 }
                 else
                 {
-                    resultSubStageIcons[i].color = new Color(0.25f, 0.25f, 0.25f, 1f); // 미클리어는 회색 유지
+                    resultSubStageIcons[i].color = new Color(0.25f, 0.25f, 0.25f, 1f);
                 }
             }
             yield return null;
         }
 
-        // 결과창 버튼 로직 연결 (기존 코드 유지)
         if (replayButton != null)
         {
             replayButton.interactable = true;

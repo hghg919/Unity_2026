@@ -86,6 +86,12 @@ public class LobbyManager : MonoBehaviour
             return;
         }
 
+        // ⭐ 효과음 추가: 스테이지 선택 버튼 클릭음
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         if (StageManager.Instance != null)
         {
             StageManager.Instance.SelectedMainStage = stageNum;
@@ -124,6 +130,12 @@ public class LobbyManager : MonoBehaviour
 
     public void OnClickPlay()
     {
+        // ⭐ 효과음 추가: 인게임 진입 전투 시작 버튼음
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
+
         if (StageManager.Instance != null)
         {
             StageManager.Instance.CurrentSubStage = 1;
@@ -133,6 +145,12 @@ public class LobbyManager : MonoBehaviour
 
     public void OnClickQuit()
     {
+        // ⭐ 효과음 추가: 세부 정보 창 '닫기' 버튼음 (닫는 느낌을 주기 위해 피치를 0.8f로 낮춤)
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick, 0.8f);
+        }
+
         stageDetailPanel.SetActive(false);
     }
 }

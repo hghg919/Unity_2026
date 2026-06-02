@@ -1,9 +1,22 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement; // 씬 전환 감지를 위한 네임스페이스
+using UnityEngine.SceneManagement;
 
 public class StageManager : MonoBehaviour
 {
     public static StageManager Instance { get; private set; }
+
+    // 📌 깔끔한 호출을 위한 효과음 종류 정의 (기획서 반영)
+    public enum SFXType
+    {
+        PlayerShoot,    // 0: 투사체 발사음
+        PlayerHit,      // 1: 플레이어 피격음
+        PlayerDeath,    // 2: 플레이어 사망음
+        EnemyHit,       // 3: 몬스터 피격음
+        EnemyDeath,     // 4: 몬스터 사망음
+        BossCharge,     // 5: 보스 초고속 돌진음
+        UIClick,        // 6: 통합 버튼 클릭음
+        RouletteTick    // 7: ⭐⭐⭐ [추가] 룰렛 회전 틱! 틱! 소리
+    }
 
     public int UnlockedMainStage = 1;
     public int SelectedMainStage = 1;
@@ -18,18 +31,15 @@ public class StageManager : MonoBehaviour
     public AudioClip victoryBGM;
     public AudioClip defeatBGM;
 
+    // ⭐⭐⭐ [효과음용 슬롯 추가] 열거형 순서대로 유니티 인스펙터에 넣을 슬롯 (크기: 7)
+    [Header("🔊 효과음(SFX) 에셋 설정")]
+    public AudioClip[] sfxClips;
+
     private AudioSource bgmSource;
-    // ⭐⭐⭐ [B안 핵심 추가] 유니티 오디오 필터 컴포넌트 변수
+    private AudioSource sfxSource;        // ⭐ 효과음 전용 플레이어
     private AudioLowPassFilter lowPassFilter;
     private float originalVolume = 1.0f;
 
-    // --- StageManager.cs 내부에 아래 Start 함수를 추가해 줍니다 ---
-    private void Start()
-    {
-        // 짚고 넘어가기: 최초 게임 구동 시 sceneLoaded 이벤트를 타이밍상 놓치기 때문에,
-        // 현재 열려있는 씬(TitleScene)을 강제로 한 번 체크하여 브금을 수동 재생합니다.
-        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
-    }
     private void Awake()
     {
         if (Instance == null)
@@ -38,23 +48,23 @@ public class StageManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             UnlockedMainStage = PlayerPrefs.GetInt("UnlockedMainStage", 1);
 
+            // 1. BGM 플레이어 세팅
             bgmSource = GetComponent<AudioSource>();
-            if (bgmSource == null)
-            {
-                bgmSource = gameObject.AddComponent<AudioSource>();
-            }
+            if (bgmSource == null) bgmSource = gameObject.AddComponent<AudioSource>();
             bgmSource.loop = true;
             bgmSource.playOnAwake = false;
             bgmSource.volume = originalVolume;
 
-            // ⭐⭐⭐ [B안 필터 자동 세팅] 
-            // 오브젝트에 필터 컴포넌트가 없다면 코드가 스스로 알아서 추가해 줍니다.
+            // ⭐ 2. 효과음 플레이어 세팅 (효과음은 루프하지 않고 바로 나옴)
+            sfxSource = gameObject.AddComponent<AudioSource>();
+            sfxSource.loop = false;
+            sfxSource.playOnAwake = false;
+            sfxSource.volume = 1.0f; // 효과음 기본 볼륨은 짱짱하게 100%
+
+            // 3. 필터 세팅
             lowPassFilter = GetComponent<AudioLowPassFilter>();
-            if (lowPassFilter == null)
-            {
-                lowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
-            }
-            lowPassFilter.enabled = false; // 게임 시작할 때는 필터를 꺼둡니다 (선명하게)
+            if (lowPassFilter == null) lowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
+            lowPassFilter.enabled = false;
         }
         else
         {
@@ -67,13 +77,28 @@ public class StageManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 💡 씬이 이동되면 일시정지 필터와 볼륨을 완전 초기화 상태로 돌려놓습니다.
         if (bgmSource != null) bgmSource.volume = originalVolume;
         if (lowPassFilter != null) lowPassFilter.enabled = false;
 
         if (scene.name == "TitleScene") PlayBGM(titleBGM);
         else if (scene.name == "LobbyScene") PlayLobbyThemeBGM((SelectedMainStage - 1) / 3);
         else if (scene.name == "GameScene") PlayGameStageBGM(SelectedMainStage);
+    }
+
+    // ⭐⭐⭐ [언제 어디서나 효과음 빵빵 터트리는 마법의 함수]
+    // 사용법 예시: StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
+    public void PlaySFX(SFXType type, float customPitch = 1.0f)
+    {
+        if (sfxSource == null || sfxClips == null) return;
+
+        int index = (int)type;
+        if (index < 0 || index >= sfxClips.Length || sfxClips[index] == null) return;
+
+        // 음정(Pitch) 조절 기능 추가 (UI 닫기 등 변칙용 기본값 1.0f)
+        sfxSource.pitch = customPitch;
+
+        // PlayOneShot은 여러 소리가 겹쳐도 이전 소리를 끊지 않고 동시 연주해줍니다.
+        sfxSource.PlayOneShot(sfxClips[index]);
     }
 
     public void PlayLobbyThemeBGM(int themeIndex)
@@ -89,32 +114,27 @@ public class StageManager : MonoBehaviour
         PlayBGM(gameStageBGMs[bgmIndex]);
     }
 
-    // ⭐⭐⭐ [완벽한 B안: Low-Pass Filter 연출 제어장치]
     public void SetPauseBGMState(bool isPaused)
     {
         if (bgmSource == null || lowPassFilter == null) return;
 
         if (isPaused)
         {
-            // 1) 일시정지 되었을 때:
-            bgmSource.volume = originalVolume * 0.6f;  // 볼륨은 살짝만 줄이고 (60%)
-            lowPassFilter.enabled = true;              // 먹먹한 필터 가동!
-            lowPassFilter.cutoffFrequency = 800f;      // 800Hz 이상의 고음역대를 싹 깎아버림 (물속 소리 연출)
-            Debug.Log("⏸️ [BGM 매니저] 일시정지 - Low-Pass Filter 발동 (물속 사운드)");
+            bgmSource.volume = originalVolume * 0.6f;
+            lowPassFilter.enabled = true;
+            lowPassFilter.cutoffFrequency = 800f;
         }
         else
         {
-            // 2) 게임으로 복귀했을 때:
-            bgmSource.volume = originalVolume;         // 볼륨 원상 복구 (100%)
-            lowPassFilter.enabled = false;             // 필터 완전히 끄기 (다시 선명하게)
-            Debug.Log("▶️ [BGM 매니저] 일시정지 해제 - Filter 해제 (선명한 사운드)");
+            bgmSource.volume = originalVolume;
+            lowPassFilter.enabled = false;
         }
     }
 
     public void PlayResultBGM(bool isWin)
     {
         if (bgmSource == null) return;
-        if (lowPassFilter != null) lowPassFilter.enabled = false; // 결과창 뜰 때는 필터 끄기
+        if (lowPassFilter != null) lowPassFilter.enabled = false;
 
         AudioClip resultClip = isWin ? victoryBGM : defeatBGM;
         if (resultClip != null)

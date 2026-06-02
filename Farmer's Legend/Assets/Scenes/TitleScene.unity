@@ -1546,6 +1546,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1367978254
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1367978256}
+  - component: {fileID: 1367978255}
+  m_Layer: 0
+  m_Name: TitleBgmManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1367978255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367978254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa43b86f460162b42808ca43baa72100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TitleBGMPlayer
+  titleBGM: {fileID: 8300000, guid: c9d655f46a3a20c47a77f93981d847d4, type: 3}
+--- !u!4 &1367978256
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1367978254}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1414851985
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2538,7 +2583,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2102339356}
   - component: {fileID: 2102339355}
-  - component: {fileID: 2102339357}
   m_Layer: 0
   m_Name: TitleManager
   m_TagString: Untagged
@@ -2573,19 +2617,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2102339357
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2102339354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa43b86f460162b42808ca43baa72100, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TitleBGMPlayer
-  titleBGM: {fileID: 8300000, guid: c9d655f46a3a20c47a77f93981d847d4, type: 3}
 --- !u!1001 &487786467966725380
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2702,3 +2733,4 @@ SceneRoots:
   - {fileID: 1333360747}
   - {fileID: 2102339356}
   - {fileID: 895125090}
+  - {fileID: 1367978256}

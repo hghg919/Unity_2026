@@ -6,18 +6,26 @@ public class TitleManager : MonoBehaviour
     // Start 버튼을 눌렀을 때 실행될 함수
     public void OnClickStart()
     {
-        Debug.Log("Start 버튼 클릭됨! 게임 씬으로 이동합니다.");
+        // ⭐ 효과음 추가: 일반 클릭음 (Pitch = 1.0f)
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
 
-        // "GameScene" 부분은 이동할 씬의 정확한 이름으로 바꿔주세요 (예: LobbyScene)
+        Debug.Log("Start 버튼 클릭됨! 게임 씬으로 이동합니다.");
         SceneManager.LoadScene("LobbyScene");
     }
 
     // Quit 버튼을 눌렀을 때 실행될 함수
     public void OnClickQuit()
     {
-        Debug.Log("Quit 버튼 클릭됨! 게임을 종료합니다.");
+        // ⭐ 효과음 추가: 종료 버튼 클릭음 (Pitch = 1.0f)
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.UIClick);
+        }
 
-        // 에디터에서는 이 코드가 작동하지 않는 것처럼 보일 수 있지만 빌드하면 정상 작동합니다.
+        Debug.Log("Quit 버튼 클릭됨! 게임을 종료합니다.");
         Application.Quit();
     }
 }

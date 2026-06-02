@@ -47883,6 +47883,15 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 458dd8822518c4f37bc3edba9b6c57d9, type: 3}
   victoryBGM: {fileID: 8300000, guid: 9533ded2d642a1f42bc8787d2346f5ed, type: 3}
   defeatBGM: {fileID: 8300000, guid: eb7f10105313640a18ce7926041a4d76, type: 3}
+  sfxClips:
+  - {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
+  - {fileID: 8300000, guid: 74198389e177d0948b63ca9a3fb22801, type: 3}
+  - {fileID: 8300000, guid: acbcb75601b0082458fda8807f67c813, type: 3}
+  - {fileID: 8300000, guid: 58a5d36d6b134014ea5623d9802082e2, type: 3}
+  - {fileID: 8300000, guid: ba39bf8baf6d13046889b2d64822381a, type: 3}
+  - {fileID: 8300000, guid: 5c7b6d4002009e842bd2621585546d19, type: 3}
+  - {fileID: 8300000, guid: cf6c0e7fbef9449c98a0cdb5ea0c4d9f, type: 3}
+  - {fileID: 8300000, guid: c5e2a73ad4706440f93bf05df0b465fe, type: 3}
 --- !u!1001 &1881110494
 PrefabInstance:
   m_ObjectHideFlags: 0

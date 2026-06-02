@@ -91,6 +91,13 @@ public class BossEnemy : MonoBehaviour
             currentState = BossState.Charging;
             Vector3 chargeDirection = transform.forward; // 기 모으기가 끝난 시점의 정면 방향
 
+            // ⭐⭐⭐ [효과음 추가 - 요소 5번: BossCharge]
+            // 기 모으기 경고가 끝나고 물리적으로 몸이 튀어나가는 이 기막힌 타이밍에 보스 돌진음 가동!
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.PlaySFX(StageManager.SFXType.BossCharge);
+            }
+
             float chargeTimer = 0f;
             while (chargeTimer < chargeMaxDuration && currentState == BossState.Charging)
             {
@@ -152,6 +159,13 @@ public class BossEnemy : MonoBehaviour
     {
         currentHealth -= damage;
 
+        // ⭐⭐⭐ [효과음 추가 - 요소 3번: EnemyHit]
+        // 보스가 플레이어의 반사 화살을 맞았을 때도 동일하게 찰진 피격음을 들려줍니다.
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
+        }
+
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(DamageFlashRoutine());
 
@@ -164,6 +178,14 @@ public class BossEnemy : MonoBehaviour
     void Die()
     {
         StopAllCoroutines();
+
+        // ⭐⭐⭐ [효과음 추가 - 요소 4번: EnemyDeath]
+        // 최종 스테이지 보스가 격파되어 처단되는 통쾌함을 사망음으로 마무리합니다.
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
+        }
+
         if (InGameStageManager.Instance != null)
             InGameStageManager.Instance.EnemyDied(this.gameObject);
 

@@ -119,7 +119,14 @@ public class PlayerController : MonoBehaviour
 
             transform.rotation = Quaternion.LookRotation(targetDir);
 
-            // ⭐⭐⭐ [다중 발사 알고리즘 코어 적용]
+            // ⭐⭐⭐ [효과음 추가 - 요소 0번: PlayerShoot]
+            // 아까 나눴던 대화처럼 다중 발사(MultiShot) 시 소리가 겹쳐서 시끄러워지는 것을 방지하기 위해,
+            // 화살 개별 개수가 아닌 "한 번 공격 액션을 취할 때 딱 한 번 깔끔하게" 발사음이 터지도록 설계했습니다.
+            if (StageManager.Instance != null)
+            {
+                StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerShoot);
+            }
+
             // 기본 상태 (Level 0): 전방 발사 1개
             SpawnProjectile(targetDir);
 
@@ -158,6 +165,13 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         currentHealth -= damage;
 
+        // ⭐⭐⭐ [효과음 추가 - 요소 1번: PlayerHit]
+        // 플레이어가 피격되어 하트가 깎이고 몸이 빨갛게 깜빡이는 타이밍에 신음/피격음을 즉시 재생합니다.
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerHit);
+        }
+
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(PlayerFlashRoutine());
 
@@ -171,6 +185,14 @@ public class PlayerController : MonoBehaviour
         isDead = true;
         rb.linearVelocity = Vector3.zero;
         moveVelocity = Vector3.zero;
+
+        // ⭐⭐⭐ [효과음 추가 - 요소 2번: PlayerDeath]
+        // 사망 플래그가 서고 인게임 매니저에게 소식을 알리기 직전, 처절한 사망 효과음을 재생합니다.
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerDeath);
+        }
+
         if (InGameStageManager.Instance != null) InGameStageManager.Instance.PlayerDied();
     }
 
