@@ -9,7 +9,11 @@ public class PlayerController : MonoBehaviour
     public GameObject projectilePrefab; // 발사할 투사체 프리팹
     public Transform firePoint;          // 투사체가 나갈 총구 위치
 
+    [Header("부드러운 회전 설정")]
+    public float rotationSpeed = 14f;
+
     private Rigidbody rb;
+    private Animator anim; // 에셋 애니메이터 컴포넌트 제어용
     private Vector3 moveVelocity;
     private bool isMoving = false;
 
@@ -32,11 +36,13 @@ public class PlayerController : MonoBehaviour
 
     // 🏅 [보상 데이터 관리 시스템]
     private int extraBounces = 0;  // BounceUp 누적 스택
-    private int multiShotLevel = 0; // ⭐ [추가] 다중 발사(MultiShot) 누적 레벨 (0~2)
+    private int multiShotLevel = 0; // 다중 발사(MultiShot) 누적 레벨 (0~2)
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        anim = GetComponent<Animator>(); // 내 오브젝트의 Animator 가져오기
+
         currentHealth = maxHealth; // 시작할 때 체력 풀피로 설정
 
         // 뼈대 속 모자까지 Renderer 전수조사
@@ -74,6 +80,13 @@ public class PlayerController : MonoBehaviour
 
         isMoving = moveInput.magnitude > 0.1f;
 
+        // [에셋 맞춤형 애니메이션 이동 이식]
+        if (anim != null)
+        {
+            anim.SetBool("Static_b", !isMoving); // 움직일 때 false, 멈추면 true
+            anim.SetFloat("Speed_f", isMoving ? 1.0f : 0.0f); // 걷기 조건(0.25) 충족용
+        }
+
         // 2. 멈춰있을 때만 공격 트리거
         if (!isMoving && Time.time >= nextAttackTime)
         {
@@ -88,8 +101,9 @@ public class PlayerController : MonoBehaviour
 
         if (isMoving)
         {
-            Quaternion newRotation = Quaternion.LookRotation(moveVelocity);
-            rb.MoveRotation(newRotation);
+            // [부드러운 구면 선형 회전 보간 적용]
+            Quaternion targetRotation = Quaternion.LookRotation(moveVelocity);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
         }
     }
 
@@ -117,11 +131,19 @@ public class PlayerController : MonoBehaviour
             Vector3 targetDir = (closestEnemy.transform.position - transform.position).normalized;
             targetDir.y = 0;
 
-            transform.rotation = Quaternion.LookRotation(targetDir);
+            // 사격 타켓팅 부드러운 회전
+            Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed * 1.5f));
 
-            // ⭐⭐⭐ [효과음 추가 - 요소 0번: PlayerShoot]
-            // 아까 나눴던 대화처럼 다중 발사(MultiShot) 시 소리가 겹쳐서 시끄러워지는 것을 방지하기 위해,
-            // 화살 개별 개수가 아닌 "한 번 공격 액션을 취할 때 딱 한 번 깔끔하게" 발사음이 터지도록 설계했습니다.
+            // ⭐ [오류 해결 완료 구역] 변수 뒤에 붙어있던 불필요한 기호를 완벽히 제거했습니다!
+            if (anim != null)
+            {
+                anim.SetInteger("Animation_int", 10);
+                // 멈추지 않고 계속 던지는 버그를 막기 위해 0.15초 뒤 자동으로 0번(Idle)으로 되돌립니다.
+                StartCoroutine(ResetAttackAnimation());
+            }
+
+            // 효과음 추가 - 요소 0번: PlayerShoot
             if (StageManager.Instance != null)
             {
                 StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerShoot);
@@ -132,15 +154,13 @@ public class PlayerController : MonoBehaviour
 
             if (multiShotLevel == 1)
             {
-                // 첫 번째 획득 (Level 1): 전방 1개 + 우측 대각선 1개 (총 2발)
-                Vector3 rightDiag = Quaternion.Euler(0, 25f, 0) * targetDir; // Y축 기준 우측으로 25도 회전
+                Vector3 rightDiag = Quaternion.Euler(0, 25f, 0) * targetDir;
                 SpawnProjectile(rightDiag);
             }
             else if (multiShotLevel >= 2)
             {
-                // 두 번째 획득 (Level 2): 전방 1개 + 우측 대각선 1개 + 좌측 대각선 1개 (총 3발)
                 Vector3 rightDiag = Quaternion.Euler(0, 25f, 0) * targetDir;
-                Vector3 leftDiag = Quaternion.Euler(0, -25f, 0) * targetDir; // Y축 기준 좌측으로 25도 회전
+                Vector3 leftDiag = Quaternion.Euler(0, -25f, 0) * targetDir;
                 SpawnProjectile(rightDiag);
                 SpawnProjectile(leftDiag);
             }
@@ -149,14 +169,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // 투사체 생성 및 반사 횟수 주입을 처리하는 안전 공용 함수
+    // 공격 애니메이션 안전 리셋 코루틴
+    IEnumerator ResetAttackAnimation()
+    {
+        // 현재 0.15초로 되어있는데, 모션 속도를 올린 후 
+        // 너무 일찍 끊기면 0.2f로 늘려주고, 반대로 너무 늦게 풀리면 0.1f로 줄여주며 튜닝하면 됩니다!
+        yield return new WaitForSecondsRealtime(0.2f);
+        if (anim != null && !isDead)
+        {
+            anim.SetInteger("Animation_int", 0);
+        }
+    }
+
     void SpawnProjectile(Vector3 direction)
     {
         GameObject projObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
         Projectile projScript = projObj.GetComponent<Projectile>();
         if (projScript != null)
         {
-            projScript.maxBounces += extraBounces; // 기존 먹어둔 BounceUp 스택 실시간 가산
+            projScript.maxBounces += extraBounces;
         }
     }
 
@@ -165,8 +196,6 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         currentHealth -= damage;
 
-        // ⭐⭐⭐ [효과음 추가 - 요소 1번: PlayerHit]
-        // 플레이어가 피격되어 하트가 깎이고 몸이 빨갛게 깜빡이는 타이밍에 신음/피격음을 즉시 재생합니다.
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerHit);
@@ -186,8 +215,12 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         moveVelocity = Vector3.zero;
 
-        // ⭐⭐⭐ [효과음 추가 - 요소 2번: PlayerDeath]
-        // 사망 플래그가 서고 인게임 매니저에게 소식을 알리기 직전, 처절한 사망 효과음을 재생합니다.
+        // [에셋 맞춤형 애니메이션 사망 이식]
+        if (anim != null)
+        {
+            anim.SetBool("Death_b", true); // 사망 확인 시 쓰러지는 애니메이션 가동
+        }
+
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.PlayerDeath);
@@ -239,7 +272,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ⭐⭐⭐ [핵심 수정] 룰렛 카드 보상 적용 함수 내부 개조
     public void ApplyReward(string rewardType)
     {
         switch (rewardType)
@@ -256,35 +288,24 @@ public class PlayerController : MonoBehaviour
                 extraBounces++;
                 break;
 
-            // ⭐ [기획 병합] 스마트 힐 시스템
             case "HealOrMaxHP":
                 if (currentHealth < maxHealth)
                 {
-                    // 1) 피가 깎여있다면 1칸 단순 치유
                     currentHealth = Mathf.Min(maxHealth, currentHealth + 1);
-                    Debug.Log($"📚 [스마트 보상] 체력 1 회복 완료! 현재 체력: {currentHealth}/{maxHealth}");
                 }
                 else
                 {
-                    // 2) 피가 만땅이라면 하트 슬롯 최대치 확장 (+ 보너스로 한 칸 채워줌)
                     if (maxHealth < hpImages.Length)
                     {
                         maxHealth++;
                         currentHealth++;
-                        Debug.Log($"❤️ [스마트 보상] 체력이 가득 차 있어 최대 체력 확장! 현재 최대 체력: {maxHealth}칸");
-                    }
-                    else
-                    {
-                        Debug.Log("❤️ 이미 하트 소지 상한선에 도달하여 확장이 불가능합니다.");
                     }
                 }
-                UpdateHpUI(); // 변경된 하트 상태 즉시 갱신
+                UpdateHpUI();
                 break;
 
-            // ⭐ [기획 추가] 다중 발사 시스템
             case "MultiShot":
-                multiShotLevel = Mathf.Min(2, multiShotLevel + 1); // 최대 레벨 2까지 제한 중첩
-                Debug.Log($"🏹 [다중 발사] 업그레이드 완료! 현재 발사 레벨: {multiShotLevel} (추가 화살 발사)");
+                multiShotLevel = Mathf.Min(2, multiShotLevel + 1);
                 break;
         }
     }

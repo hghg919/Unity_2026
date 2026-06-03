@@ -1,60 +1,54 @@
 ﻿using UnityEngine;
-using UnityEngine.AI; // NavMesh 사용을 위해 필수
+using UnityEngine.AI;
 using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
-    // 1. 기본 능력치 설정
     public int maxHealth = 1;
     private int currentHealth;
 
-    // ⭐ [추가] 인스펙터에서 개별적으로 조절할 적의 이동속도 (기본값 3.5)
     [Header("이동 능력치")]
     public float moveSpeed = 3.5f;
 
-    // 2. AI 유형 설정 (인스펙터 창에서 고를 수 있음)
     public enum EnemyType { Melee, Ranged }
     [Header("AI 유형 결정")]
     public EnemyType enemyType = EnemyType.Melee;
 
     [Header("원거리 옵션 (Ranged Only)")]
-    public float attackRange = 7f;       // 원거리 몹이 멈춰서 공격할 사정거리
-    public GameObject enemyProjectile;  // 적이 발사할 똥/화살 프리팹
-    public Transform firePoint;          // 적의 총구 위치
-    public float attackRate = 1.5f;      // 공격 주기 (초)
+    public float attackRange = 7f;
+    public GameObject enemyProjectile;
+    public Transform firePoint;
+    public float attackRate = 1.5f;
     private float nextAttackTime = 0f;
 
-    // 내비게이션 및 플레이어 참조
     private NavMeshAgent agent;
     private Transform playerTransform;
+    private Animator anim; // 📌 동물 애니메이터 컴포넌트 제어용
 
     [Header("타격감 및 이펙트 연출")]
-    private Renderer enemyRenderer; // 적의 메시 렌더러 컴포넌트
-    private Color originalColor;    // 원래 색상 저장용
+    private Renderer enemyRenderer;
+    private Color originalColor;
     private Coroutine flashCoroutine;
 
-    // ⭐⭐⭐ [이펙트 추가] 유저님이 직접 구하신 몬스터 소멸 이펙트 프리팹 슬롯
     public GameObject deathEffectPrefab;
 
     void Start()
     {
         currentHealth = maxHealth;
         agent = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>(); // 애니메이터 캐싱
 
-        // ⭐ [추가] 내가 설정한 이동속도를 NavMeshAgent에 주입합니다.
         if (agent != null)
         {
             agent.speed = moveSpeed;
         }
 
-        // ⭐ [추가] 자식 오브젝트에서 렌더러를 찾아 원래 색상을 기억해 둡니다.
         enemyRenderer = GetComponentInChildren<Renderer>();
         if (enemyRenderer != null)
         {
             originalColor = enemyRenderer.material.color;
         }
 
-        // 플레이어 찾기
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -68,28 +62,25 @@ public class Enemy : MonoBehaviour
     {
         if (playerTransform == null || agent == null) return;
 
-        // 플레이어와의 거리 계산
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         if (enemyType == EnemyType.Melee)
         {
-            // [근접형] 장애물 피해 무조건 끝까지 쫓아감
             agent.SetDestination(playerTransform.position);
+
+            // 📌 [애니메이션] 근접 몹은 항상 움직이므로 기본 걷기 속도(0.5) 주입
+            if (anim != null) anim.SetFloat("Speed_f", 0.5f);
         }
         else if (enemyType == EnemyType.Ranged)
         {
-            // ⭐⭐⭐ [인공지능 대폭 고도화] 
-            // 사정거리 안이면서 '동시에 벽에 가려지지 않고 눈에 보일 때만' 제자리에 서서 공격합니다!
             if (distanceToPlayer <= attackRange && HasLineOfSight())
             {
-                agent.ResetPath(); // 조건이 다 맞을 때만 멈추기
+                agent.ResetPath();
 
-                // 플레이어 바라보기
                 Vector3 lookDir = (playerTransform.position - transform.position).normalized;
                 lookDir.y = 0;
                 transform.rotation = Quaternion.LookRotation(lookDir);
 
-                // 공격 타이밍 체크
                 if (Time.time >= nextAttackTime)
                 {
                     RangedAttack();
@@ -97,40 +88,47 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                // 💡 [핵심] 사거리보다 멀거나, 혹은 사거리 안이더라도 벽에 가려져서 안 보이면?
-                // 플레이어가 눈에 보일 때까지 네비메쉬 길을 따라 벽을 돌아서 계속 추격합니다!
                 agent.SetDestination(playerTransform.position);
+
+                // 📌 [애니메이션] 추격 중일 때는 걷기 모션 가동
+                if (anim != null && !anim.GetBool("Eat_b"))
+                {
+                    anim.SetFloat("Speed_f", 0.5f);
+                }
             }
         }
     }
 
-    // 적과 플레이어 사이에 벽(Wall)이 가로막고 있는지 실시간 레이저 검사
     bool HasLineOfSight()
     {
         if (firePoint == null || playerTransform == null) return false;
 
-        // 플레이어의 중심점을 조준하도록 살짝 높이 보정 (피벗이 발바닥일 경우 레이저가 바닥에 닿는 것 방지)
         Vector3 targetCenter = playerTransform.position + Vector3.up * 0.5f;
         Vector3 targetDir = (targetCenter - firePoint.position).normalized;
         float distance = Vector3.Distance(firePoint.position, targetCenter);
 
         RaycastHit hit;
-        // 총구 위치에서 플레이어 방향으로 레이저를 쏩니다.
         if (Physics.Raycast(firePoint.position, targetDir, out hit, distance))
         {
-            // 레이저가 플레이어에게 닿기 전에 "Wall" 태그 오브젝트에 부딪혔다면 시야 차단으로 판단
             if (hit.collider.CompareTag("Wall"))
             {
                 return false;
             }
         }
-
         return true;
     }
 
     void RangedAttack()
     {
         nextAttackTime = Time.time + attackRate;
+
+        // 📌 [애니메이션 연동] 에셋 규칙에 맞게 속도를 0으로 내리고 Eat_b를 켭니다!
+        if (anim != null)
+        {
+            anim.SetFloat("Speed_f", 0f);
+            anim.SetBool("Eat_b", true);
+            StartCoroutine(ResetAttackAnimation());
+        }
 
         if (enemyProjectile != null && firePoint != null)
         {
@@ -140,17 +138,27 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    // 공격 후 다시 걷기 상태로 돌려놓는 안전 코루틴
+    IEnumerator ResetAttackAnimation()
+    {
+        // 기존 0.4초에서 0.15초 ~ 0.2초 정도로 줄여줍니다.
+        yield return new WaitForSeconds(0.18f);
+        if (anim != null)
+        {
+            anim.SetBool("Eat_b", false);
+            anim.SetFloat("Speed_f", 0.5f); // 다시 팍팍 걸어오도록 복구
+        }
+    }
+
     public void TakeDamage(int damage)
     {
         currentHealth -= damage;
 
-        // 효과음 추가 - 요소 3번: EnemyHit
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyHit);
         }
 
-        // 피격 시 기존에 돌던 플래시가 있다면 끄고 새로 시작
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(DamageFlashRoutine());
 
@@ -162,14 +170,11 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
-        // ⭐⭐⭐ [시각 효과 추가] 
-        // 몬스터가 완전히 월드에서 삭제(Destroy)되기 직전, 그 자리에 소멸 이펙트 파티클을 쾅 생성합니다!
         if (deathEffectPrefab != null)
         {
             Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
         }
 
-        // 효과음 추가 - 요소 4번: EnemyDeath
         if (StageManager.Instance != null)
         {
             StageManager.Instance.PlaySFX(StageManager.SFXType.EnemyDeath);
@@ -189,22 +194,24 @@ public class Enemy : MonoBehaviour
             if (player != null)
             {
                 player.TakeDamage(1);
+
+                // 근접 몹도 부딪히는 순간 한 번 까딱 공격 연출
+                if (anim != null)
+                {
+                    anim.SetFloat("Speed_f", 0f);
+                    anim.SetBool("Eat_b", true);
+                    StartCoroutine(ResetAttackAnimation());
+                }
             }
         }
     }
 
-    // 0.1초 동안 빨갛게 물들였다가 되돌리는 코루틴
     IEnumerator DamageFlashRoutine()
     {
         if (enemyRenderer != null)
         {
-            // 머티리얼 색상을 빨간색으로 변경
             enemyRenderer.material.color = Color.red;
-
-            // 0.1초 동안 대기 (Time.timeScale의 영향을 받지 않게 Realtime 권장)
             yield return new WaitForSecondsRealtime(0.1f);
-
-            // 원래 색상으로 복구
             enemyRenderer.material.color = originalColor;
         }
     }
